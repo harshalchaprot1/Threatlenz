@@ -1,0 +1,50 @@
+# ==============================================================================
+# ThreatLenz - Git Ignore Configuration
+# ==============================================================================
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
+
+# IDE and Editors
+.vscode/
+.idea/
+
+# Build and Packaging
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+airflow/logs/
+
+# Datasets and Generated Data
+data/raw/*
+data/processed/*
+data/external/*
+data/sample/*
+reports/generated/*
+
+# Model Artifacts
+models/
+*.pkl
+*.pickle
+*.joblib
+
+# Apache Spark
+spark-warehouse/
+metastore_db/
+
+# Operating System Files
+.DS_Store
+Thumbs.db

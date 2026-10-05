@@ -1,0 +1,28 @@
+# ==============================================================================
+# ThreatLenz - Python 3.11 Dependencies Manifest
+# ==============================================================================
+
+# 1. Core Python
+numpy>=1.26.0,<2.0.0
+pandas>=2.2.0,<3.0.0
+pyarrow>=14.0.0
+
+# 2. Data / PySpark
+pyspark>=3.5.0,<3.6.0
+
+# 3. Machine Learning / Evaluation
+scikit-learn>=1.4.0,<1.6.0
+
+# 4. Configuration / Validation
+pydantic>=2.7.0,<3.0.0
+pydantic-settings>=2.2.0,<3.0.0
+python-dotenv>=1.0.0
+
+# 5. Backend preparation
+fastapi>=0.111.0,<1.0.0
+uvicorn>=0.29.0
+sqlalchemy>=2.0.0,<3.0.0
+psycopg2-binary>=2.9.9
+
+# 6. Testing / Development
+pytest>=8.0.0

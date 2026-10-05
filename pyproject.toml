@@ -1,0 +1,39 @@
+[project]
+name = "threatlenz"
+version = "0.1.0"
+description = "ThreatLenz: End-to-End Cyber Threat Intelligence, Detection, and Risk Analytics Platform"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+authors = [
+    { name = "ThreatLenz Team" }
+]
+keywords = [
+    "cybersecurity",
+    "threat-intelligence",
+    "pyspark",
+    "machine-learning",
+    "mitre-attack",
+    "ciciot2023",
+    "fastapi"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "build",
+    "dist"
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = []
