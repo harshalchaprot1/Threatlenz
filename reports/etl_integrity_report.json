@@ -1,0 +1,115 @@
+{
+  "pipeline_name": "ThreatLenz-ETL-Data-Integrity",
+  "timestamp": "2026-10-06T00:30:54.262469",
+  "execution_time_seconds": 80.55,
+  "dataset_source": "CSE-CIC-IDS2018 Selected Processed TrafficForML CSVs",
+  "input_files": [
+    "Friday-02-03-2018_TrafficForML_CICFlowMeter.csv",
+    "Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Thursday-01-03-2018_TrafficForML_CICFlowMeter.csv",
+    "Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv",
+    "Wednesday-28-02-2018_TrafficForML_CICFlowMeter.csv"
+  ],
+  "input_rows_total": 7235679,
+  "malformed_repeated_headers_count": 59,
+  "malformed_headers_file_breakdown": [
+    {
+      "file": "Wednesday-28-02-2018_TrafficForML_CICFlowMeter.csv",
+      "repeated_headers_count": 33
+    },
+    {
+      "file": "Thursday-01-03-2018_TrafficForML_CICFlowMeter.csv",
+      "repeated_headers_count": 25
+    },
+    {
+      "file": "Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+      "repeated_headers_count": 1
+    }
+  ],
+  "negative_duration_rows_dropped": 14,
+  "diagnostic_zero_fwd_pkts_count": 0,
+  "semantically_invalid_rows_dropped": 14,
+  "curated_retained_rows": 7235606,
+  "class_distribution": {
+    "Benign": 5064128,
+    "DDoS-HOIC": 686012,
+    "DoS-Hulk": 461912,
+    "Bot": 286191,
+    "FTP-BruteForce": 193360,
+    "SSH-BruteForce": 187589,
+    "Infiltration": 161934,
+    "DoS-SlowHTTPTest": 139890,
+    "DoS-GoldenEye": 41508,
+    "DoS-Slowloris": 10990,
+    "DDoS-LOIC-UDP": 1730,
+    "Brute Force - Web": 249,
+    "Brute Force - XSS": 79,
+    "SQL Injection": 34
+  },
+  "profiling_summary": {
+    "total_rows_profiled": 7235620,
+    "column_profiles": {
+      "Flow Byts/s": {
+        "null_or_empty": 0,
+        "pos_infinity": 11399,
+        "neg_infinity": 0,
+        "nan": 19200
+      },
+      "Flow Pkts/s": {
+        "null_or_empty": 0,
+        "pos_infinity": 30599,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Flow Duration": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Tot Fwd Pkts": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Tot Bwd Pkts": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Flow IAT Mean": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Init Fwd Win Byts": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "Init Bwd Win Byts": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      },
+      "RST Flag Cnt": {
+        "null_or_empty": 0,
+        "pos_infinity": 0,
+        "neg_infinity": 0,
+        "nan": 0
+      }
+    }
+  },
+  "output_parquet_location": "data/processed/flows.parquet",
+  "parquet_partitions_count": 8,
+  "parquet_total_size_bytes": 811664902,
+  "parquet_total_size_mb": 774.06
+}

@@ -41,9 +41,13 @@ models/
 *.pickle
 *.joblib
 
-# Apache Spark
+# Apache Spark & Hadoop
 spark-warehouse/
 metastore_db/
+.hadoop/
+hadoop/
+*.exe
+*.dll
 
 # Operating System Files
 .DS_Store
