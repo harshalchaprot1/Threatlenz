@@ -184,6 +184,22 @@ class Settings(BaseSettings):
         "fwd_blk_rate_avg", "bwd_byts_b_avg", "bwd_pkts_b_avg", "bwd_blk_rate_avg"
     ]
 
+    # Non-feature metadata columns to exclude from ML feature vectors
+    metadata_columns: List[str] = [
+        "timestamp", "timestamp_parsed", "raw_label", "event_date"
+    ]
+
+    @property
+    def flows_parquet_path(self) -> Path:
+        """Returns the path to the curated flows.parquet dataset."""
+        return self.data_processed_dir / "flows.parquet"
+
+    @property
+    def analytics_report_path(self) -> Path:
+        """Returns the path to the Phase 2 Spark analytics report."""
+        return self.reports_dir / "spark_analytics_report.json"
+
+
     # TLRS Configuration
     tlrs_weight_severity: float = 0.40
     tlrs_weight_frequency: float = 0.25

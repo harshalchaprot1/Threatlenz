@@ -1,0 +1,1273 @@
+{
+  "report_name": "ThreatLenz-Phase2-Spark-Analytics",
+  "timestamp": "2026-10-06T11:36:03.456103",
+  "spark_version": "3.5.9",
+  "execution_time_seconds": 22.25,
+  "dataset_path": "E:\\Projects\\ThreatLenz\\data\\processed\\flows.parquet",
+  "data_integrity": {
+    "verified_rows": 7235606,
+    "verified_columns": 83,
+    "partitions_count": 8,
+    "partition_dates": [
+      "2018-02-14",
+      "2018-02-15",
+      "2018-02-16",
+      "2018-02-21",
+      "2018-02-22",
+      "2018-02-28",
+      "2018-03-01",
+      "2018-03-02"
+    ],
+    "null_and_nan_audit": {
+      "flow_duration": 0,
+      "tot_fwd_pkts": 0,
+      "tot_bwd_pkts": 0,
+      "flow_byts_s": 0,
+      "flow_pkts_s": 0
+    },
+    "passed_integrity_checks": true
+  },
+  "class_distribution": {
+    "classes_count": 14,
+    "classes": [
+      {
+        "class_name": "Benign",
+        "support": 5064128,
+        "percentage": 69.989,
+        "ratio_to_benign": 1.0,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DDoS-HOIC",
+        "support": 686012,
+        "percentage": 9.4811,
+        "ratio_to_benign": 7.38,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DoS-Hulk",
+        "support": 461912,
+        "percentage": 6.3839,
+        "ratio_to_benign": 10.96,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "Bot",
+        "support": 286191,
+        "percentage": 3.9553,
+        "ratio_to_benign": 17.69,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "FTP-BruteForce",
+        "support": 193360,
+        "percentage": 2.6723,
+        "ratio_to_benign": 26.19,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "SSH-BruteForce",
+        "support": 187589,
+        "percentage": 2.5926,
+        "ratio_to_benign": 27.0,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "Infiltration",
+        "support": 161934,
+        "percentage": 2.238,
+        "ratio_to_benign": 31.27,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DoS-SlowHTTPTest",
+        "support": 139890,
+        "percentage": 1.9334,
+        "ratio_to_benign": 36.2,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DoS-GoldenEye",
+        "support": 41508,
+        "percentage": 0.5737,
+        "ratio_to_benign": 122.0,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DoS-Slowloris",
+        "support": 10990,
+        "percentage": 0.1519,
+        "ratio_to_benign": 460.79,
+        "is_rare_class": false,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "DDoS-LOIC-UDP",
+        "support": 1730,
+        "percentage": 0.0239,
+        "ratio_to_benign": 2927.24,
+        "is_rare_class": true,
+        "is_ultra_rare": false
+      },
+      {
+        "class_name": "Brute Force - Web",
+        "support": 249,
+        "percentage": 0.0034,
+        "ratio_to_benign": 20337.86,
+        "is_rare_class": true,
+        "is_ultra_rare": true
+      },
+      {
+        "class_name": "Brute Force - XSS",
+        "support": 79,
+        "percentage": 0.0011,
+        "ratio_to_benign": 64102.89,
+        "is_rare_class": true,
+        "is_ultra_rare": true
+      },
+      {
+        "class_name": "SQL Injection",
+        "support": 34,
+        "percentage": 0.0005,
+        "ratio_to_benign": 148944.94,
+        "is_rare_class": true,
+        "is_ultra_rare": true
+      }
+    ]
+  },
+  "temporal_distribution": {
+    "event_date_totals": {
+      "2018-02-14": 1048570,
+      "2018-02-15": 1048575,
+      "2018-02-16": 1048574,
+      "2018-02-21": 1048575,
+      "2018-02-22": 1048566,
+      "2018-02-28": 613071,
+      "2018-03-01": 331100,
+      "2018-03-02": 1048575
+    },
+    "attack_temporal_profiles": [
+      {
+        "class_name": "Benign",
+        "active_days_count": 8,
+        "primary_event_date": "2018-02-22",
+        "primary_day_count": 1048204,
+        "primary_day_percentage": 20.7,
+        "is_single_day_attack": false,
+        "daily_counts": {
+          "2018-02-14": 667621,
+          "2018-02-15": 996077,
+          "2018-02-16": 446772,
+          "2018-02-21": 360833,
+          "2018-02-22": 1048204,
+          "2018-02-28": 544200,
+          "2018-03-01": 238037,
+          "2018-03-02": 762384
+        }
+      },
+      {
+        "class_name": "Bot",
+        "active_days_count": 1,
+        "primary_event_date": "2018-03-02",
+        "primary_day_count": 286191,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-03-02": 286191
+        }
+      },
+      {
+        "class_name": "Brute Force - Web",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-22",
+        "primary_day_count": 249,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-22": 249
+        }
+      },
+      {
+        "class_name": "Brute Force - XSS",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-22",
+        "primary_day_count": 79,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-22": 79
+        }
+      },
+      {
+        "class_name": "DDoS-HOIC",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-21",
+        "primary_day_count": 686012,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-21": 686012
+        }
+      },
+      {
+        "class_name": "DDoS-LOIC-UDP",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-21",
+        "primary_day_count": 1730,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-21": 1730
+        }
+      },
+      {
+        "class_name": "DoS-GoldenEye",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-15",
+        "primary_day_count": 41508,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-15": 41508
+        }
+      },
+      {
+        "class_name": "DoS-Hulk",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-16",
+        "primary_day_count": 461912,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-16": 461912
+        }
+      },
+      {
+        "class_name": "DoS-SlowHTTPTest",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-16",
+        "primary_day_count": 139890,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-16": 139890
+        }
+      },
+      {
+        "class_name": "DoS-Slowloris",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-15",
+        "primary_day_count": 10990,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-15": 10990
+        }
+      },
+      {
+        "class_name": "FTP-BruteForce",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-14",
+        "primary_day_count": 193360,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-14": 193360
+        }
+      },
+      {
+        "class_name": "Infiltration",
+        "active_days_count": 2,
+        "primary_event_date": "2018-03-01",
+        "primary_day_count": 93063,
+        "primary_day_percentage": 57.47,
+        "is_single_day_attack": false,
+        "daily_counts": {
+          "2018-02-28": 68871,
+          "2018-03-01": 93063
+        }
+      },
+      {
+        "class_name": "SQL Injection",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-22",
+        "primary_day_count": 34,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-22": 34
+        }
+      },
+      {
+        "class_name": "SSH-BruteForce",
+        "active_days_count": 1,
+        "primary_event_date": "2018-02-14",
+        "primary_day_count": 187589,
+        "primary_day_percentage": 100.0,
+        "is_single_day_attack": true,
+        "daily_counts": {
+          "2018-02-14": 187589
+        }
+      }
+    ]
+  },
+  "traffic_characteristics": {
+    "Benign": {
+      "flow_count": 5064128,
+      "duration": {
+        "mean": 13264757.6,
+        "std": 31813266.55,
+        "min": 0.0,
+        "max": 120000000.0,
+        "zero_duration_flows": 29298,
+        "zero_duration_pct": 0.579
+      },
+      "rates": {
+        "pkts_per_sec_mean": 34395.0,
+        "pkts_per_sec_std": 224453.04,
+        "pkts_per_sec_max": 4000000.0,
+        "bytes_per_sec_mean": 308170.98,
+        "bytes_per_sec_std": 4051053.89,
+        "bytes_per_sec_max": 1806642857.14
+      },
+      "packets": {
+        "fwd_pkts_mean": 5.89,
+        "fwd_pkts_std": 84.49,
+        "bwd_pkts_mean": 6.73,
+        "bwd_pkts_std": 163.13,
+        "unidirectional_zero_bwd_flows": 977030,
+        "unidirectional_pct": 19.293,
+        "down_up_ratio_mean": 0.46
+      },
+      "bytes": {
+        "fwd_bytes_mean": 550.5,
+        "bwd_bytes_mean": 5127.69,
+        "pkt_size_avg_mean": 106.44
+      }
+    },
+    "DDoS-HOIC": {
+      "flow_count": 686012,
+      "duration": {
+        "mean": 9720.32,
+        "std": 9185.65,
+        "min": 2.0,
+        "max": 88511.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 948.37,
+        "pkts_per_sec_std": 4803.21,
+        "pkts_per_sec_max": 1000000.0,
+        "bytes_per_sec_mean": 61521.4,
+        "bytes_per_sec_std": 187949.22,
+        "bytes_per_sec_max": 1911676.65
+      },
+      "packets": {
+        "fwd_pkts_mean": 2.24,
+        "fwd_pkts_std": 0.43,
+        "bwd_pkts_mean": 0.95,
+        "bwd_pkts_std": 1.71,
+        "unidirectional_zero_bwd_flows": 522262,
+        "unidirectional_pct": 76.13,
+        "down_up_ratio_mean": 0.24
+      },
+      "bytes": {
+        "fwd_bytes_mean": 71.4,
+        "bwd_bytes_mean": 223.18,
+        "pkt_size_avg_mean": 42.08
+      }
+    },
+    "DoS-Hulk": {
+      "flow_count": 461912,
+      "duration": {
+        "mean": 301755.61,
+        "std": 3485600.97,
+        "min": 2.0,
+        "max": 67854712.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 1208.64,
+        "pkts_per_sec_std": 6423.28,
+        "pkts_per_sec_max": 1000000.0,
+        "bytes_per_sec_mean": 1519.72,
+        "bytes_per_sec_std": 13907.73,
+        "bytes_per_sec_max": 1730136.99
+      },
+      "packets": {
+        "fwd_pkts_mean": 2.23,
+        "fwd_pkts_std": 0.53,
+        "bwd_pkts_mean": 0.24,
+        "bwd_pkts_std": 1.01,
+        "unidirectional_zero_bwd_flows": 436364,
+        "unidirectional_pct": 94.469,
+        "down_up_ratio_mean": 0.05
+      },
+      "bytes": {
+        "fwd_bytes_mean": 20.45,
+        "bwd_bytes_mean": 51.71,
+        "pkt_size_avg_mean": 9.12
+      }
+    },
+    "Bot": {
+      "flow_count": 286191,
+      "duration": {
+        "mean": 75298.91,
+        "std": 2485232.9,
+        "min": 236.0,
+        "max": 117021898.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 2236.53,
+        "pkts_per_sec_std": 1643.59,
+        "pkts_per_sec_max": 12711.86,
+        "bytes_per_sec_mean": 20368.75,
+        "bytes_per_sec_std": 20975.52,
+        "bytes_per_sec_max": 474576.27
+      },
+      "packets": {
+        "fwd_pkts_mean": 2.57,
+        "fwd_pkts_std": 1.53,
+        "bwd_pkts_mean": 2.02,
+        "bwd_pkts_std": 2.56,
+        "unidirectional_zero_bwd_flows": 143177,
+        "unidirectional_pct": 50.028,
+        "down_up_ratio_mean": 0.51
+      },
+      "bytes": {
+        "fwd_bytes_mean": 159.26,
+        "bwd_bytes_mean": 67.32,
+        "pkt_size_avg_mean": 32.3
+      }
+    },
+    "FTP-BruteForce": {
+      "flow_count": 193360,
+      "duration": {
+        "mean": 3.8,
+        "std": 5.83,
+        "min": 0.0,
+        "max": 63.0,
+        "zero_duration_flows": 6,
+        "zero_duration_pct": 0.003
+      },
+      "rates": {
+        "pkts_per_sec_mean": 1189123.61,
+        "pkts_per_sec_std": 637404.15,
+        "pkts_per_sec_max": 2000000.0,
+        "bytes_per_sec_mean": 0.0,
+        "bytes_per_sec_std": 0.0,
+        "bytes_per_sec_max": 0.0
+      },
+      "packets": {
+        "fwd_pkts_mean": 1.0,
+        "fwd_pkts_std": 0.0,
+        "bwd_pkts_mean": 1.0,
+        "bwd_pkts_std": 0.0,
+        "unidirectional_zero_bwd_flows": 0,
+        "unidirectional_pct": 0.0,
+        "down_up_ratio_mean": 1.0
+      },
+      "bytes": {
+        "fwd_bytes_mean": 0.0,
+        "bwd_bytes_mean": 0.0,
+        "pkt_size_avg_mean": 0.0
+      }
+    },
+    "SSH-BruteForce": {
+      "flow_count": 187589,
+      "duration": {
+        "mean": 183349.68,
+        "std": 184682.81,
+        "min": 1.0,
+        "max": 567266.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 158521.13,
+        "pkts_per_sec_std": 165250.75,
+        "pkts_per_sec_max": 2000000.0,
+        "bytes_per_sec_mean": 6333.74,
+        "bytes_per_sec_std": 6415.74,
+        "bytes_per_sec_max": 47005.97
+      },
+      "packets": {
+        "fwd_pkts_mean": 11.72,
+        "fwd_pkts_std": 10.74,
+        "bwd_pkts_mean": 11.15,
+        "bwd_pkts_std": 10.17,
+        "unidirectional_zero_bwd_flows": 5,
+        "unidirectional_pct": 0.003,
+        "down_up_ratio_mean": 0.76
+      },
+      "bytes": {
+        "fwd_bytes_mean": 967.32,
+        "bwd_bytes_mean": 1332.8,
+        "pkt_size_avg_mean": 52.62
+      }
+    },
+    "Infiltration": {
+      "flow_count": 161934,
+      "duration": {
+        "mean": 11222826.42,
+        "std": 31323901.83,
+        "min": 0.0,
+        "max": 119999951.0,
+        "zero_duration_flows": 1295,
+        "zero_duration_pct": 0.8
+      },
+      "rates": {
+        "pkts_per_sec_mean": 107436.26,
+        "pkts_per_sec_std": 349335.11,
+        "pkts_per_sec_max": 3000000.0,
+        "bytes_per_sec_mean": 268582.87,
+        "bytes_per_sec_std": 3313045.49,
+        "bytes_per_sec_max": 274000000.0
+      },
+      "packets": {
+        "fwd_pkts_mean": 4.83,
+        "fwd_pkts_std": 44.13,
+        "bwd_pkts_mean": 4.42,
+        "bwd_pkts_std": 56.74,
+        "unidirectional_zero_bwd_flows": 25156,
+        "unidirectional_pct": 15.535,
+        "down_up_ratio_mean": 0.69
+      },
+      "bytes": {
+        "fwd_bytes_mean": 525.98,
+        "bwd_bytes_mean": 1915.41,
+        "pkt_size_avg_mean": 80.33
+      }
+    },
+    "DoS-SlowHTTPTest": {
+      "flow_count": 139890,
+      "duration": {
+        "mean": 4.9,
+        "std": 6.44,
+        "min": 1.0,
+        "max": 70.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 734700.09,
+        "pkts_per_sec_std": 318771.36,
+        "pkts_per_sec_max": 2000000.0,
+        "bytes_per_sec_mean": 0.0,
+        "bytes_per_sec_std": 0.0,
+        "bytes_per_sec_max": 0.0
+      },
+      "packets": {
+        "fwd_pkts_mean": 1.0,
+        "fwd_pkts_std": 0.0,
+        "bwd_pkts_mean": 1.0,
+        "bwd_pkts_std": 0.0,
+        "unidirectional_zero_bwd_flows": 0,
+        "unidirectional_pct": 0.0,
+        "down_up_ratio_mean": 1.0
+      },
+      "bytes": {
+        "fwd_bytes_mean": 0.0,
+        "bwd_bytes_mean": 0.0,
+        "pkt_size_avg_mean": 0.0
+      }
+    },
+    "DoS-GoldenEye": {
+      "flow_count": 41508,
+      "duration": {
+        "mean": 11233440.51,
+        "std": 17136441.53,
+        "min": 21.0,
+        "max": 113661903.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 8.73,
+        "pkts_per_sec_std": 468.41,
+        "pkts_per_sec_max": 95238.1,
+        "bytes_per_sec_mean": 1534.97,
+        "bytes_per_sec_std": 109677.26,
+        "bytes_per_sec_max": 22333333.33
+      },
+      "packets": {
+        "fwd_pkts_mean": 3.73,
+        "fwd_pkts_std": 1.79,
+        "bwd_pkts_mean": 2.38,
+        "bwd_pkts_std": 1.76,
+        "unidirectional_zero_bwd_flows": 13736,
+        "unidirectional_pct": 33.092,
+        "down_up_ratio_mean": 0.39
+      },
+      "bytes": {
+        "fwd_bytes_mean": 351.15,
+        "bwd_bytes_mean": 568.6,
+        "pkt_size_avg_mean": 110.36
+      }
+    },
+    "DoS-Slowloris": {
+      "flow_count": 10990,
+      "duration": {
+        "mean": 71980336.27,
+        "std": 48241233.61,
+        "min": 1.0,
+        "max": 119464329.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 65291.94,
+        "pkts_per_sec_std": 247873.8,
+        "pkts_per_sec_max": 2000000.0,
+        "bytes_per_sec_mean": 311909.61,
+        "bytes_per_sec_std": 2752062.03,
+        "bytes_per_sec_max": 230000000.0
+      },
+      "packets": {
+        "fwd_pkts_mean": 7.67,
+        "fwd_pkts_std": 6.19,
+        "bwd_pkts_mean": 1.92,
+        "bwd_pkts_std": 1.2,
+        "unidirectional_zero_bwd_flows": 2358,
+        "unidirectional_pct": 21.456,
+        "down_up_ratio_mean": 0.32
+      },
+      "bytes": {
+        "fwd_bytes_mean": 1091.53,
+        "bwd_bytes_mean": 6.67,
+        "pkt_size_avg_mean": 67.61
+      }
+    },
+    "DDoS-LOIC-UDP": {
+      "flow_count": 1730,
+      "duration": {
+        "mean": 116018169.3,
+        "std": 16794194.75,
+        "min": 61002.0,
+        "max": 119999998.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 1078.14,
+        "pkts_per_sec_std": 916.33,
+        "pkts_per_sec_max": 33589.06,
+        "bytes_per_sec_mean": 34500.63,
+        "bytes_per_sec_std": 29322.51,
+        "bytes_per_sec_max": 1074850.0
+      },
+      "packets": {
+        "fwd_pkts_mean": 117351.43,
+        "fwd_pkts_std": 28278.35,
+        "bwd_pkts_mean": 0.0,
+        "bwd_pkts_std": 0.0,
+        "unidirectional_zero_bwd_flows": 1730,
+        "unidirectional_pct": 100.0,
+        "down_up_ratio_mean": 0.0
+      },
+      "bytes": {
+        "fwd_bytes_mean": 3755245.72,
+        "bwd_bytes_mean": 0.0,
+        "pkt_size_avg_mean": 32.0
+      }
+    },
+    "Brute Force - Web": {
+      "flow_count": 249,
+      "duration": {
+        "mean": 17101230.57,
+        "std": 24507875.05,
+        "min": 6.0,
+        "max": 63603693.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 19460.72,
+        "pkts_per_sec_std": 48007.43,
+        "pkts_per_sec_max": 333333.33,
+        "bytes_per_sec_mean": 705.26,
+        "bytes_per_sec_std": 981.82,
+        "bytes_per_sec_max": 2866.42
+      },
+      "packets": {
+        "fwd_pkts_mean": 43.76,
+        "fwd_pkts_std": 66.41,
+        "bwd_pkts_mean": 29.35,
+        "bwd_pkts_std": 45.43,
+        "unidirectional_zero_bwd_flows": 104,
+        "unidirectional_pct": 41.767,
+        "down_up_ratio_mean": 0.14
+      },
+      "bytes": {
+        "fwd_bytes_mean": 15094.52,
+        "bwd_bytes_mean": 19983.78,
+        "pkt_size_avg_mean": 183.88
+      }
+    },
+    "Brute Force - XSS": {
+      "flow_count": 79,
+      "duration": {
+        "mean": 27377242.29,
+        "std": 29015912.98,
+        "min": 13.0,
+        "max": 63032004.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 9809.77,
+        "pkts_per_sec_std": 20880.6,
+        "pkts_per_sec_max": 153846.15,
+        "bytes_per_sec_mean": 1997.2,
+        "bytes_per_sec_std": 2134.13,
+        "bytes_per_sec_max": 4879.85
+      },
+      "packets": {
+        "fwd_pkts_mean": 96.34,
+        "fwd_pkts_std": 100.42,
+        "bwd_pkts_mean": 48.99,
+        "bwd_pkts_std": 52.31,
+        "unidirectional_zero_bwd_flows": 39,
+        "unidirectional_pct": 49.367,
+        "down_up_ratio_mean": 0.03
+      },
+      "bytes": {
+        "fwd_bytes_mean": 26261.46,
+        "bwd_bytes_mean": 89149.66,
+        "pkt_size_avg_mean": 379.55
+      }
+    },
+    "SQL Injection": {
+      "flow_count": 34,
+      "duration": {
+        "mean": 3696677.44,
+        "std": 3170938.35,
+        "min": 12.0,
+        "max": 12903217.0,
+        "zero_duration_flows": 0,
+        "zero_duration_pct": 0.0
+      },
+      "rates": {
+        "pkts_per_sec_mean": 28016.25,
+        "pkts_per_sec_std": 46963.48,
+        "pkts_per_sec_max": 166666.67,
+        "bytes_per_sec_mean": 500.75,
+        "bytes_per_sec_std": 971.69,
+        "bytes_per_sec_max": 4507.51
+      },
+      "packets": {
+        "fwd_pkts_mean": 5.18,
+        "fwd_pkts_std": 5.57,
+        "bwd_pkts_mean": 3.09,
+        "bwd_pkts_std": 3.46,
+        "unidirectional_zero_bwd_flows": 11,
+        "unidirectional_pct": 32.353,
+        "down_up_ratio_mean": 0.24
+      },
+      "bytes": {
+        "fwd_bytes_mean": 808.12,
+        "bwd_bytes_mean": 2407.29,
+        "pkt_size_avg_mean": 196.68
+      }
+    }
+  },
+  "destination_port_analysis": {
+    "Benign": {
+      "class_name": "Benign",
+      "total_flows": 5064128,
+      "top_ports": [
+        {
+          "port": 53,
+          "service_name": "DNS (Domain Name System)",
+          "criticality_weight": 50,
+          "flow_count": 1286027,
+          "percentage_within_class": 25.39
+        },
+        {
+          "port": 443,
+          "service_name": "HTTPS (Encrypted Web)",
+          "criticality_weight": 95,
+          "flow_count": 643288,
+          "percentage_within_class": 12.7
+        },
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 641314,
+          "percentage_within_class": 12.66
+        },
+        {
+          "port": 3389,
+          "service_name": "RDP (Remote Desktop)",
+          "criticality_weight": 50,
+          "flow_count": 575550,
+          "percentage_within_class": 11.37
+        },
+        {
+          "port": 445,
+          "service_name": "SMB / Microsoft-DS",
+          "criticality_weight": 50,
+          "flow_count": 220046,
+          "percentage_within_class": 4.35
+        }
+      ],
+      "concentration_top_1_port_pct": 25.39,
+      "concentration_top_3_ports_pct": 50.75,
+      "has_extreme_port_concentration": false
+    },
+    "Bot": {
+      "class_name": "Bot",
+      "total_flows": 286191,
+      "top_ports": [
+        {
+          "port": 8080,
+          "service_name": "HTTP-Alt / Web Proxy",
+          "criticality_weight": 70,
+          "flow_count": 281634,
+          "percentage_within_class": 98.41
+        },
+        {
+          "port": 0,
+          "service_name": "Custom / Unassigned (0)",
+          "criticality_weight": 50,
+          "flow_count": 258,
+          "percentage_within_class": 0.09
+        },
+        {
+          "port": 50891,
+          "service_name": "Custom / Unassigned (50891)",
+          "criticality_weight": 50,
+          "flow_count": 6,
+          "percentage_within_class": 0.0
+        },
+        {
+          "port": 50899,
+          "service_name": "Custom / Unassigned (50899)",
+          "criticality_weight": 50,
+          "flow_count": 6,
+          "percentage_within_class": 0.0
+        },
+        {
+          "port": 50896,
+          "service_name": "Custom / Unassigned (50896)",
+          "criticality_weight": 50,
+          "flow_count": 6,
+          "percentage_within_class": 0.0
+        }
+      ],
+      "concentration_top_1_port_pct": 98.41,
+      "concentration_top_3_ports_pct": 98.5,
+      "has_extreme_port_concentration": true
+    },
+    "Brute Force - Web": {
+      "class_name": "Brute Force - Web",
+      "total_flows": 249,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 249,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "Brute Force - XSS": {
+      "class_name": "Brute Force - XSS",
+      "total_flows": 79,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 79,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DDoS-HOIC": {
+      "class_name": "DDoS-HOIC",
+      "total_flows": 686012,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 686012,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DDoS-LOIC-UDP": {
+      "class_name": "DDoS-LOIC-UDP",
+      "total_flows": 1730,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 1730,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DoS-GoldenEye": {
+      "class_name": "DoS-GoldenEye",
+      "total_flows": 41508,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 41508,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DoS-Hulk": {
+      "class_name": "DoS-Hulk",
+      "total_flows": 461912,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 461912,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DoS-SlowHTTPTest": {
+      "class_name": "DoS-SlowHTTPTest",
+      "total_flows": 139890,
+      "top_ports": [
+        {
+          "port": 21,
+          "service_name": "FTP (File Transfer)",
+          "criticality_weight": 95,
+          "flow_count": 139890,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "DoS-Slowloris": {
+      "class_name": "DoS-Slowloris",
+      "total_flows": 10990,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 10990,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "FTP-BruteForce": {
+      "class_name": "FTP-BruteForce",
+      "total_flows": 193360,
+      "top_ports": [
+        {
+          "port": 21,
+          "service_name": "FTP (File Transfer)",
+          "criticality_weight": 95,
+          "flow_count": 193360,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "Infiltration": {
+      "class_name": "Infiltration",
+      "total_flows": 161934,
+      "top_ports": [
+        {
+          "port": 53,
+          "service_name": "DNS (Domain Name System)",
+          "criticality_weight": 50,
+          "flow_count": 50320,
+          "percentage_within_class": 31.07
+        },
+        {
+          "port": 443,
+          "service_name": "HTTPS (Encrypted Web)",
+          "criticality_weight": 95,
+          "flow_count": 29262,
+          "percentage_within_class": 18.07
+        },
+        {
+          "port": 3389,
+          "service_name": "RDP (Remote Desktop)",
+          "criticality_weight": 50,
+          "flow_count": 13630,
+          "percentage_within_class": 8.42
+        },
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 5827,
+          "percentage_within_class": 3.6
+        },
+        {
+          "port": 445,
+          "service_name": "SMB / Microsoft-DS",
+          "criticality_weight": 50,
+          "flow_count": 5465,
+          "percentage_within_class": 3.37
+        }
+      ],
+      "concentration_top_1_port_pct": 31.07,
+      "concentration_top_3_ports_pct": 57.56,
+      "has_extreme_port_concentration": false
+    },
+    "SQL Injection": {
+      "class_name": "SQL Injection",
+      "total_flows": 34,
+      "top_ports": [
+        {
+          "port": 80,
+          "service_name": "HTTP (Web Traffic)",
+          "criticality_weight": 70,
+          "flow_count": 34,
+          "percentage_within_class": 100.0
+        }
+      ],
+      "concentration_top_1_port_pct": 100.0,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    },
+    "SSH-BruteForce": {
+      "class_name": "SSH-BruteForce",
+      "total_flows": 187589,
+      "top_ports": [
+        {
+          "port": 22,
+          "service_name": "SSH (Secure Shell)",
+          "criticality_weight": 100,
+          "flow_count": 187559,
+          "percentage_within_class": 99.98
+        },
+        {
+          "port": 21,
+          "service_name": "FTP (File Transfer)",
+          "criticality_weight": 95,
+          "flow_count": 30,
+          "percentage_within_class": 0.02
+        }
+      ],
+      "concentration_top_1_port_pct": 99.98,
+      "concentration_top_3_ports_pct": 100.0,
+      "has_extreme_port_concentration": true
+    }
+  },
+  "feature_redundancy": {
+    "evaluated_pairs_count": 9,
+    "redundant_pairs": [
+      {
+        "feature_1": "tot_fwd_pkts",
+        "feature_2": "subflow_fwd_pkts",
+        "description": "Forward packet count vs Subflow forward packet count",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_fwd_pkts (redundant duplicate of tot_fwd_pkts)"
+      },
+      {
+        "feature_1": "tot_bwd_pkts",
+        "feature_2": "subflow_bwd_pkts",
+        "description": "Backward packet count vs Subflow backward packet count",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_bwd_pkts (redundant duplicate of tot_bwd_pkts)"
+      },
+      {
+        "feature_1": "totlen_fwd_pkts",
+        "feature_2": "subflow_fwd_byts",
+        "description": "Forward total bytes vs Subflow forward bytes",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_fwd_byts (redundant duplicate of totlen_fwd_pkts)"
+      },
+      {
+        "feature_1": "totlen_bwd_pkts",
+        "feature_2": "subflow_bwd_byts",
+        "description": "Backward total bytes vs Subflow backward bytes",
+        "pearson_correlation": 0.999999,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_bwd_byts (redundant duplicate of totlen_bwd_pkts)"
+      },
+      {
+        "feature_1": "fwd_pkt_len_mean",
+        "feature_2": "fwd_seg_size_avg",
+        "description": "Forward packet length mean vs Forward segment size average",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop fwd_seg_size_avg (redundant duplicate of fwd_pkt_len_mean)"
+      },
+      {
+        "feature_1": "bwd_pkt_len_mean",
+        "feature_2": "bwd_seg_size_avg",
+        "description": "Backward packet length mean vs Backward segment size average",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop bwd_seg_size_avg (redundant duplicate of bwd_pkt_len_mean)"
+      }
+    ],
+    "all_evaluated_correlations": [
+      {
+        "feature_1": "tot_fwd_pkts",
+        "feature_2": "subflow_fwd_pkts",
+        "description": "Forward packet count vs Subflow forward packet count",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_fwd_pkts (redundant duplicate of tot_fwd_pkts)"
+      },
+      {
+        "feature_1": "tot_bwd_pkts",
+        "feature_2": "subflow_bwd_pkts",
+        "description": "Backward packet count vs Subflow backward packet count",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_bwd_pkts (redundant duplicate of tot_bwd_pkts)"
+      },
+      {
+        "feature_1": "totlen_fwd_pkts",
+        "feature_2": "subflow_fwd_byts",
+        "description": "Forward total bytes vs Subflow forward bytes",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_fwd_byts (redundant duplicate of totlen_fwd_pkts)"
+      },
+      {
+        "feature_1": "totlen_bwd_pkts",
+        "feature_2": "subflow_bwd_byts",
+        "description": "Backward total bytes vs Subflow backward bytes",
+        "pearson_correlation": 0.999999,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop subflow_bwd_byts (redundant duplicate of totlen_bwd_pkts)"
+      },
+      {
+        "feature_1": "fwd_pkt_len_mean",
+        "feature_2": "fwd_seg_size_avg",
+        "description": "Forward packet length mean vs Forward segment size average",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop fwd_seg_size_avg (redundant duplicate of fwd_pkt_len_mean)"
+      },
+      {
+        "feature_1": "bwd_pkt_len_mean",
+        "feature_2": "bwd_seg_size_avg",
+        "description": "Backward packet length mean vs Backward segment size average",
+        "pearson_correlation": 1.0,
+        "is_near_duplicate": true,
+        "is_strongly_collinear": true,
+        "recommendation": "Drop bwd_seg_size_avg (redundant duplicate of bwd_pkt_len_mean)"
+      },
+      {
+        "feature_1": "pkt_len_mean",
+        "feature_2": "pkt_size_avg",
+        "description": "Packet length mean vs Packet size average",
+        "pearson_correlation": 0.993804,
+        "is_near_duplicate": false,
+        "is_strongly_collinear": true,
+        "recommendation": "Retain or monitor in tree feature importance"
+      },
+      {
+        "feature_1": "flow_duration",
+        "feature_2": "fwd_iat_tot",
+        "description": "Flow duration vs Forward total inter-arrival time",
+        "pearson_correlation": 0.995663,
+        "is_near_duplicate": false,
+        "is_strongly_collinear": true,
+        "recommendation": "Retain or monitor in tree feature importance"
+      },
+      {
+        "feature_1": "flow_pkts_s",
+        "feature_2": "flow_byts_s",
+        "description": "Flow packet rate vs Flow byte rate",
+        "pearson_correlation": 0.283004,
+        "is_near_duplicate": false,
+        "is_strongly_collinear": false,
+        "recommendation": "Retain or monitor in tree feature importance"
+      }
+    ]
+  },
+  "phase_3_ml_observations": [
+    {
+      "category": "Train/Test Splitting Strategy",
+      "finding": "Every attack class is concentrated on a single primary simulation day (e.g. Bot only on 2018-03-02, DDoS on 2018-02-21).",
+      "impact_on_phase_3": "A purely chronological train/test split is strictly invalid; it would starve the test set of almost all attack categories. A stratified 80/20 train/test split across all 14 classes is mathematically mandatory."
+    },
+    {
+      "category": "Extreme Class Imbalance Handling",
+      "finding": "SQL Injection (34 records) and Brute Force - XSS (79 records) represent less than 0.0015% of the 7.2M records.",
+      "impact_on_phase_3": "Standard Random Forest will achieve 99.8% accuracy simply by predicting Benign. Inverse-frequency class weighting (w_c = N / (K * N_c)) and evaluating Macro-F1 and PR-AUC are mandatory. Do not optimize for accuracy."
+    },
+    {
+      "category": "Port Shortcut Learning Risk",
+      "finding": "Multiple attack classes exhibit extreme port concentration (e.g. SSH-BruteForce on port 22, FTP-BruteForce on port 21).",
+      "impact_on_phase_3": "Trees can easily overfit to port numbers rather than learning generalized flow dynamics. We must log and analyze Random Forest featureImportances in Phase 3 to audit whether dst_port dominates decision splits."
+    },
+    {
+      "category": "Feature Redundancy Elimination",
+      "finding": "Detected 6 feature pairs with Pearson r >= 0.999 (e.g., tot_fwd_pkts vs subflow_fwd_pkts, pkt_len_mean vs pkt_size_avg).",
+      "impact_on_phase_3": "Duplicate features bloat tree memory without adding entropy gain. Dropping exact duplicate subflow features will accelerate Spark tree splits and reduce JVM memory pressure."
+    },
+    {
+      "category": "Unidirectional Flow Signature",
+      "finding": "Specific attacks exhibit high rates of unidirectional flows (tot_bwd_pkts == 0) and zero duration.",
+      "impact_on_phase_3": "tot_bwd_pkts == 0 and down_up_ratio == 0 are legitimate network behavioral signatures for DDoS/floods and must not be treated as missing data or dropped."
+    }
+  ]
+}

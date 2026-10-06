@@ -37,3 +37,14 @@ exclude = [
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
 ignore = []
+
+[tool.pyrefly]
+search-path = ["."]
+
+[[tool.pyrefly.sub-config]]
+matches = "test/**"
+[tool.pyrefly.sub-config.errors]
+no-matching-overload = false
+
+[tool.pyright]
+extraPaths = ["."]
