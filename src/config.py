@@ -217,6 +217,53 @@ class Settings(BaseSettings):
         5432: 100,# PostgreSQL Database
     }
 
+    # Phase 4 Recurrence Denominators and Horizons
+    campaign_observed_dates: List[str] = [
+        "2018-02-14",
+        "2018-02-15",
+        "2018-02-16",
+        "2018-02-21",
+        "2018-02-22",
+        "2018-02-28",
+        "2018-03-01",
+        "2018-03-02",
+    ]
+    campaign_observed_dates_count: int = 8
+    daily_active_hours_denominator: int = 24
+    hourly_active_buckets_denominator: int = 12
+
+    # Per-Class Severity Priors (0 - 100 Scale)
+    severity_priors: Dict[str, float] = {
+        "Benign": 0.0,
+        "Infiltration": 90.0,
+        "Bot": 85.0,
+        "SQL Injection": 80.0,
+        "DDoS-HOIC": 75.0,
+        "DDoS-LOIC-UDP": 75.0,
+        "DoS-Hulk": 70.0,
+        "DoS-GoldenEye": 70.0,
+        "DoS-SlowHTTPTest": 65.0,
+        "DoS-Slowloris": 65.0,
+        "SSH-BruteForce": 60.0,
+        "FTP-BruteForce": 60.0,
+        "Brute Force - Web": 55.0,
+        "Brute Force - XSS": 55.0,
+    }
+
+    # Model Reliability Operational Gating Thresholds (Validation Data Only)
+    min_validation_support: int = 30
+    high_reliability_min_support: int = 100
+    evaluable_min_precision: float = 0.60
+    evaluable_min_recall: float = 0.60
+    evaluable_min_f1: float = 0.60
+    high_reliability_min_precision: float = 0.75
+    high_reliability_min_recall: float = 0.75
+    high_reliability_min_f1: float = 0.75
+
+    # Frequency Scoring Parameters
+    frequency_min_flows: int = 1
+    frequency_max_reference_flows: int = 1_000_000
+
 
 # Singleton settings instance
 settings = Settings()

@@ -47,3 +47,16 @@ def test_tlrs_weights_sum_to_one():
         + settings.tlrs_weight_target_impact
     )
     assert pytest.approx(total_weight, 1e-6) == 1.0
+
+
+def test_phase4_recurrence_and_severity_config():
+    """Verify Phase 4 recurrence horizons and per-class severity priors."""
+    assert len(settings.campaign_observed_dates) == settings.campaign_observed_dates_count == 8
+    assert settings.daily_active_hours_denominator == 24
+    assert settings.hourly_active_buckets_denominator == 12
+    assert len(settings.severity_priors) == 14
+    assert settings.severity_priors["Benign"] == 0.0
+    assert settings.severity_priors["Infiltration"] == 90.0
+    assert settings.severity_priors["Bot"] == 85.0
+    assert settings.min_validation_support == 30
+    assert settings.high_reliability_min_support == 100
