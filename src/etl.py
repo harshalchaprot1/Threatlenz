@@ -114,20 +114,39 @@ def profile_dataset(df: DataFrame) -> Dict[str, Any]:
     total_rows = df.count()
 
     # Identify candidate rate and numeric columns to profile
-    rate_cols = ["Flow Byts/s", "Flow Pkts/s", "Flow Duration"]
+    rate_cols = ["Flow Byts/s", "Flow Pkts/s", "Flow Duration", "Fwd Pkts/s", "Bwd Pkts/s"]
     sample_numeric_cols = [
         "Tot Fwd Pkts", "Tot Bwd Pkts", "Flow IAT Mean",
-        "Init Fwd Win Byts", "Init Bwd Win Byts", "RST Flag Cnt"
+        "Init Fwd Win Byts", "Init Bwd Win Byts", "RST Flag Cnt",
+        "Down/Up Ratio"
     ]
-    cols_to_profile = rate_cols + sample_numeric_cols
+    cols_to_profile = [c for c in (rate_cols + sample_numeric_cols) if c in df.columns]
 
     agg_exprs = []
     for c in cols_to_profile:
         agg_exprs.extend([
-            F.count(F.when(F.col(c).isNull() | (F.col(c) == ""), True)).alias(f"{c}__null"),
-            F.count(F.when(F.col(c).isin("Infinity", "+Infinity", "inf", "+inf"), True)).alias(f"{c}__pos_inf"),
-            F.count(F.when(F.col(c).isin("-Infinity", "-inf"), True)).alias(f"{c}__neg_inf"),
-            F.count(F.when(F.col(c).isin("NaN", "nan"), True)).alias(f"{c}__nan"),
+            F.count(F.when(F.isnull(F.col(c)) | (F.col(c) == ""), True)).alias(f"{c}__null"),
+            F.count(
+                F.when(
+                    F.col(c).isin("Infinity", "+Infinity", "inf", "+inf")
+                    | (F.col(c).cast(DoubleType()) == float("inf")),
+                    True,
+                )
+            ).alias(f"{c}__pos_inf"),
+            F.count(
+                F.when(
+                    F.col(c).isin("-Infinity", "-inf")
+                    | (F.col(c).cast(DoubleType()) == float("-inf")),
+                    True,
+                )
+            ).alias(f"{c}__neg_inf"),
+            F.count(
+                F.when(
+                    F.col(c).isin("NaN", "nan")
+                    | F.isnan(F.col(c).cast(DoubleType())),
+                    True,
+                )
+            ).alias(f"{c}__nan"),
         ])
 
     profile_row = df.select(agg_exprs).collect()[0]
@@ -151,10 +170,11 @@ def clean_and_transform(df: DataFrame) -> Tuple[DataFrame, Dict[str, Any]]:
     Semantic Rules:
     - Exclude repeated header rows (Label == "Label").
     - Preserve semantically valid zero values (tot_bwd_pkts == 0, flow_duration == 0).
-    - Filter physically impossible records: flow_duration < 0 or tot_fwd_pkts < 1.
-    - Sanitize non-finite tokens in rate metrics by replacing with 0.0 for zero-duration flows.
+    - Filter physically impossible records: negative flow duration (flow_duration < 0).
+    - Audit diagnostically: records with tot_fwd_pkts < 1 are counted but preserved.
+    - Sanitize non-finite tokens and empty/null values in rate and ratio metrics to 0.0.
     - Standardize attack labels using settings.label_mapping while preserving raw_label.
-    - Parse timestamp into timestamp type and derive event_date partition column.
+    - Parse timestamp into timestamp type, exclude unparseable timestamps, and derive event_date partition column.
 
     Args:
         df: Raw DataFrame.
@@ -181,19 +201,47 @@ def clean_and_transform(df: DataFrame) -> Tuple[DataFrame, Dict[str, Any]]:
 
     # 4. Handle non-finite values in rate columns
     # When flow_duration == 0, rates are mathematically undefined in CICFlowMeter.
-    # Convert 'Infinity', 'NaN', etc. to 0.0 to prevent VectorAssembler crashes.
-    for rate_col in ["flow_byts_s", "flow_pkts_s"]:
+    # Convert 'Infinity', 'NaN', IEEE non-finites, and null/empty tokens to 0.0 to prevent VectorAssembler crashes.
+    rate_columns = ["flow_byts_s", "flow_pkts_s", "fwd_pkts_s", "bwd_pkts_s"]
+    for rate_col in rate_columns:
+        if rate_col in valid_df.columns:
+            valid_df = valid_df.withColumn(
+                rate_col,
+                F.when(
+                    F.isnull(F.col(rate_col))
+                    | (F.col(rate_col) == "")
+                    | F.col(rate_col).isin("Infinity", "+Infinity", "-Infinity", "inf", "-inf", "NaN", "nan")
+                    | F.isnan(F.col(rate_col).cast(DoubleType()))
+                    | (F.col(rate_col).cast(DoubleType()) == float("inf"))
+                    | (F.col(rate_col).cast(DoubleType()) == float("-inf")),
+                    F.lit(0.0),
+                ).otherwise(F.col(rate_col).cast(DoubleType())),
+            )
+
+    # 5. Handle ratio features (down_up_ratio)
+    # Down/Up ratio is undefined when tot_fwd_pkts == 0 (division by zero) or missing.
+    # Sanitize when tot_fwd_pkts == 0, non-finite tokens, IEEE inf/nan, null, and empty values to 0.0.
+    if "down_up_ratio" in valid_df.columns:
+        zero_fwd_cond = (
+            (F.col("tot_fwd_pkts").cast(DoubleType()) == 0)
+            if "tot_fwd_pkts" in valid_df.columns
+            else F.lit(False)
+        )
         valid_df = valid_df.withColumn(
-            rate_col,
+            "down_up_ratio",
             F.when(
-                F.col(rate_col).isin("Infinity", "+Infinity", "-Infinity", "inf", "-inf", "NaN", "nan")
-                | F.col(rate_col).isNull()
-                | (F.col(rate_col) == ""),
+                zero_fwd_cond
+                | F.isnull(F.col("down_up_ratio"))
+                | (F.col("down_up_ratio") == "")
+                | F.col("down_up_ratio").isin("Infinity", "+Infinity", "-Infinity", "inf", "-inf", "NaN", "nan")
+                | F.isnan(F.col("down_up_ratio").cast(DoubleType()))
+                | (F.col("down_up_ratio").cast(DoubleType()) == float("inf"))
+                | (F.col("down_up_ratio").cast(DoubleType()) == float("-inf")),
                 F.lit(0.0),
-            ).otherwise(F.col(rate_col).cast(DoubleType())),
+            ).otherwise(F.col("down_up_ratio").cast(DoubleType())),
         )
 
-    # 5. Cast numeric flow columns
+    # 6. Cast numeric flow columns
     # Preserve zero values in tot_bwd_pkts and flow_duration
     valid_df = (
         valid_df.withColumn("flow_duration", F.col("flow_duration").cast(DoubleType()))
@@ -204,24 +252,26 @@ def clean_and_transform(df: DataFrame) -> Tuple[DataFrame, Dict[str, Any]]:
     )
 
     # Cast remaining flow metrics to DoubleType
-    exclude_cast = {"dst_port", "protocol", "timestamp", "label", "raw_label", "flow_byts_s", "flow_pkts_s"}
+    exclude_cast = {
+        "dst_port", "protocol", "timestamp", "label", "raw_label",
+        "flow_byts_s", "flow_pkts_s", "fwd_pkts_s", "bwd_pkts_s", "down_up_ratio"
+    }
     for col_name in valid_df.columns:
         if col_name not in exclude_cast and col_name in settings.column_mapping.values():
             valid_df = valid_df.withColumn(col_name, F.col(col_name).cast(DoubleType()))
 
-    # 6. Semantic Filtering:
+    # 7. Semantic Filtering:
     # Filter only proven invalid records:
     # - Negative flow duration (clock jump / counter overflow)
     # Diagnostic check: audit tot_fwd_pkts < 1 without dropping legitimate records
     diagnostic_zero_fwd_count = valid_df.filter(F.col("tot_fwd_pkts") < 1).count()
     initial_valid_count = valid_df.count()
-    clean_df = valid_df.filter(F.col("flow_duration") >= 0)
-    retained_count = clean_df.count()
-    negative_duration_dropped = initial_valid_count - retained_count
+    duration_filtered_df = valid_df.filter(F.col("flow_duration") >= 0)
+    negative_duration_dropped = initial_valid_count - duration_filtered_df.count()
 
-    # 7. Timestamp parsing and partition date derivation
+    # 8. Timestamp parsing and partition date derivation
     # Format in CSE-CIC-IDS2018: dd/MM/yyyy HH:mm:ss
-    clean_df = clean_df.withColumn(
+    parsed_df = duration_filtered_df.withColumn(
         "timestamp_parsed",
         F.to_timestamp(F.col("timestamp"), "dd/MM/yyyy HH:mm:ss"),
     ).withColumn(
@@ -229,23 +279,31 @@ def clean_and_transform(df: DataFrame) -> Tuple[DataFrame, Dict[str, Any]]:
         F.to_date(F.col("timestamp_parsed")),
     )
 
+    # Exclude records with invalid parsed timestamps to ensure no null event_date partition
+    invalid_timestamp_count = parsed_df.filter(F.isnull(F.col("event_date"))).count()
+    clean_df = parsed_df.filter(~F.isnull(F.col("event_date")))
+    retained_count = clean_df.count()
+    total_semantically_invalid_dropped = negative_duration_dropped + invalid_timestamp_count
+
     metrics = {
         "pre_cleaning_rows": initial_valid_count,
         "retained_rows": retained_count,
         "negative_duration_dropped": negative_duration_dropped,
         "diagnostic_zero_fwd_pkts_count": diagnostic_zero_fwd_count,
-        "semantically_invalid_dropped": negative_duration_dropped,
+        "invalid_timestamp_dropped": invalid_timestamp_count,
+        "semantically_invalid_dropped": total_semantically_invalid_dropped,
     }
     logger.info(
-        "Cleaning complete. Retained rows: %d, Dropped negative duration: %d (Diagnostic zero fwd pkts: %d)",
+        "Cleaning complete. Retained rows: %d, Dropped negative duration: %d, Dropped invalid timestamp: %d (Diagnostic zero fwd pkts: %d)",
         retained_count,
         negative_duration_dropped,
+        invalid_timestamp_count,
         diagnostic_zero_fwd_count,
     )
     return clean_df, metrics
 
 
-def run_etl(spark: SparkSession = None) -> Dict[str, Any]:
+def run_etl(spark: SparkSession | None = None) -> Dict[str, Any]:
     """Executes the full ThreatLenz ETL and Data Integrity Pipeline.
 
     Sequence:
@@ -317,6 +375,7 @@ def run_etl(spark: SparkSession = None) -> Dict[str, Any]:
         "malformed_headers_file_breakdown": malformed_breakdown,
         "negative_duration_rows_dropped": clean_metrics["negative_duration_dropped"],
         "diagnostic_zero_fwd_pkts_count": clean_metrics["diagnostic_zero_fwd_pkts_count"],
+        "invalid_timestamp_rows_dropped": clean_metrics["invalid_timestamp_dropped"],
         "semantically_invalid_rows_dropped": clean_metrics["semantically_invalid_dropped"],
         "curated_retained_rows": clean_metrics["retained_rows"],
         "class_distribution": class_distribution,
