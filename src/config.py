@@ -223,6 +223,11 @@ class Settings(BaseSettings):
         )
 
 
+    # API Backend Configuration
+    api_host: str = "0.0.0.0"
+    api_port: int = 8000
+    api_prefix: str = "/api/v1"
+
     # TLRS Configuration
     tlrs_weight_severity: float = 0.40
     tlrs_weight_frequency: float = 0.25
