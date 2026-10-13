@@ -199,6 +199,11 @@ class Settings(BaseSettings):
         """Returns the path to the Phase 2 Spark analytics report."""
         return self.reports_dir / "spark_analytics_report.json"
 
+    @property
+    def threat_intelligence_report_path(self) -> Path:
+        """Returns the path to the Phase 5 threat intelligence report."""
+        return self.reports_dir / "threat_intelligence_report.json"
+
 
     # TLRS Configuration
     tlrs_weight_severity: float = 0.40
