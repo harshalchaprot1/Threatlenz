@@ -204,6 +204,24 @@ class Settings(BaseSettings):
         """Returns the path to the Phase 5 threat intelligence report."""
         return self.reports_dir / "threat_intelligence_report.json"
 
+    # PostgreSQL Configuration
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_db: str = "threatlenz"
+    postgres_user: str = "threatlenz"
+    postgres_password: str = "change_me"
+    database_url: str | None = None
+
+    @property
+    def effective_database_url(self) -> str:
+        """Returns configured database_url or constructs PostgreSQL connection URL."""
+        if self.database_url:
+            return self.database_url
+        return (
+            f"postgresql+psycopg2://{self.postgres_user}:{self.postgres_password}@"
+            f"{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
 
     # TLRS Configuration
     tlrs_weight_severity: float = 0.40
