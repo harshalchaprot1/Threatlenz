@@ -57,6 +57,7 @@ NUM_CLASSES: int = len(LABEL_TO_INDEX)
 EXCLUDED_METADATA_COLS: List[str] = [
     "label",
     "raw_label",
+    "label_idx",
     "timestamp",
     "timestamp_parsed",
     "event_date",
@@ -158,6 +159,7 @@ def get_feature_columns(available_cols: List[str], config: TrainingConfig) -> Li
         List[str]: Clean, ordered list of feature column names.
     """
     excluded = set(EXCLUDED_METADATA_COLS)
+    excluded.add("label_idx")
     excluded.update(settings.constant_columns)
 
     if not config.include_dst_port:

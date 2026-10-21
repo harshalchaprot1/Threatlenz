@@ -93,7 +93,7 @@ def test_feature_exclusion_and_leakage_safeguards():
     """Verify strict exclusion of metadata, destination port, constant, and collinear columns."""
     all_dataset_columns = [
         # Targets & metadata
-        "label", "raw_label", "timestamp", "timestamp_parsed", "event_date", "source_file",
+        "label", "raw_label", "label_idx", "timestamp", "timestamp_parsed", "event_date", "source_file",
         # Shortcut feature
         "dst_port",
         # Constant columns
@@ -109,6 +109,7 @@ def test_feature_exclusion_and_leakage_safeguards():
     cfg_default = TrainingConfig(include_dst_port=False, prune_collinear_subflows=True)
     features_default = get_feature_columns(all_dataset_columns, cfg_default)
 
+    assert "label_idx" not in features_default
     for meta in EXCLUDED_METADATA_COLS:
         assert meta not in features_default
     for shortcut in SHORTCUT_COLS:
