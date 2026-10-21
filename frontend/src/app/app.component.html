@@ -1,0 +1,56 @@
+<div class="shell-container">
+  <!-- Top Application Bar -->
+  <mat-toolbar class="shell-toolbar">
+    <div class="brand-group">
+      <span class="material-symbols-outlined brand-icon">shield</span>
+      <div class="brand-text">
+        <span class="brand-title">ThreatLenz</span>
+        <span class="brand-subtitle">Cyber Threat Intelligence &amp; Risk Analytics</span>
+      </div>
+    </div>
+
+    <span class="toolbar-spacer"></span>
+
+    <!-- Status & API Governance Badges -->
+    <div class="toolbar-actions">
+      <span class="threatlenz-badge badge-withheld">
+        <span class="material-symbols-outlined" style="font-size: 14px;">policy</span>
+        Governance: Evidence-Aware
+      </span>
+      <a [href]="apiUrl + '/docs'" target="_blank" rel="noopener" class="api-link" title="Open Swagger Documentation">
+        <span class="material-symbols-outlined" style="font-size: 16px;">api</span>
+        <span>API v{{ version }}</span>
+      </a>
+    </div>
+  </mat-toolbar>
+
+  <!-- Sidenav & View Content -->
+  <mat-sidenav-container class="shell-sidenav-container">
+    <mat-sidenav mode="side" opened class="shell-sidenav">
+      <div class="sidenav-header">
+        <span class="sidenav-label">INTELLIGENCE CONSOLE</span>
+      </div>
+      <mat-nav-list class="nav-list">
+        @for (item of navItems; track item.route) {
+          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-nav-item" class="nav-item">
+            <span class="material-symbols-outlined nav-icon" matListItemIcon>{{ item.icon }}</span>
+            <span matListItemTitle class="nav-title">{{ item.label }}</span>
+          </a>
+        }
+      </mat-nav-list>
+
+      <div class="sidenav-footer">
+        <div class="data-source-info">
+          <span class="data-source-label">Dataset Provenance</span>
+          <span class="data-source-value">CSE-CIC-IDS2018</span>
+        </div>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="shell-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

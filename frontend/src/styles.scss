@@ -1,0 +1,113 @@
+/* ==============================================================================
+   ThreatLenz - Cybersecurity Design System & Angular Material Dark Theme
+   ============================================================================== */
+
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// 1. Angular Material Palette Definitions
+$threatlenz-primary: mat.m2-define-palette(mat.$m2-indigo-palette, 400, 200, 700);
+$threatlenz-accent: mat.m2-define-palette(mat.$m2-cyan-palette, A200, A100, A400);
+$threatlenz-warn: mat.m2-define-palette(mat.$m2-red-palette, 500, 300, 800);
+
+$threatlenz-theme: mat.m2-define-dark-theme((
+  color: (
+    primary: $threatlenz-primary,
+    accent: $threatlenz-accent,
+    warn: $threatlenz-warn,
+  ),
+  typography: mat.m2-define-typography-config(
+    $font-family: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+  ),
+  density: 0,
+));
+
+@include mat.all-component-themes($threatlenz-theme);
+
+// 2. CSS Design Tokens
+:root {
+  --tl-bg-base: #0B0F19;
+  --tl-bg-surface: #111827;
+  --tl-bg-card: #1F2937;
+  --tl-bg-card-hover: #283548;
+  --tl-border: #374151;
+  --tl-border-light: rgba(255, 255, 255, 0.08);
+
+  --tl-text-primary: #F9FAFB;
+  --tl-text-secondary: #9CA3AF;
+  --tl-text-muted: #6B7280;
+
+  --tl-cyan: #06B6D4;
+  --tl-blue: #3B82F6;
+  --tl-emerald: #10B981;
+  --tl-amber: #F59E0B;
+  --tl-orange: #F97316;
+  --tl-rose: #EF4444;
+  --tl-purple: #8B5CF6;
+}
+
+// 3. Global Reset & Base Styles
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--tl-bg-base);
+  color: var(--tl-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// 4. Material Icon Helper
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  vertical-align: middle;
+}
+
+// 5. Utility Classes
+.threatlenz-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-attack {
+  background: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-benign {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-unknown {
+  background: rgba(139, 92, 246, 0.15);
+  color: #A78BFA;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.badge-withheld {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}

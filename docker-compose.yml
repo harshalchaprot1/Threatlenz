@@ -1,0 +1,100 @@
+# ==============================================================================
+# ThreatLenz - Multi-Tier Production Docker Compose Specification
+# ==============================================================================
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Relational Database Service (PostgreSQL 16)
+  # ----------------------------------------------------------------------------
+  threatlenz-db:
+    image: postgres:16-alpine
+    container_name: threatlenz-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-threatlenz}
+      POSTGRES_USER: ${POSTGRES_USER:-threatlenz}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be configured in .env}"
+    volumes:
+      # Persistent storage volume for relational data
+      - postgres_data:/var/lib/postgresql/data
+      # Idempotent DDL script mounted to official postgres entrypoint (runs if DB uninitialized)
+      - ./database/init/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    # PostgreSQL is kept private to the threatlenz-net bridge network (port 5432 NOT published to host)
+    networks:
+      - threatlenz-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-threatlenz} -d $${POSTGRES_DB:-threatlenz}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ----------------------------------------------------------------------------
+  # 2. REST API Backend Service (FastAPI / Uvicorn)
+  # ----------------------------------------------------------------------------
+  threatlenz-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: threatlenz-api
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-ThreatLenz}
+      APP_ENV: ${APP_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      POSTGRES_HOST: threatlenz-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-threatlenz}
+      POSTGRES_USER: ${POSTGRES_USER:-threatlenz}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be configured in .env}"
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    depends_on:
+      threatlenz-db:
+        condition: service_healthy
+    networks:
+      - threatlenz-net
+    ports:
+      # Expose API on host (default: 8000) for direct inspection / testing
+      - "${API_PORT_HOST:-8000}:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ----------------------------------------------------------------------------
+  # 3. Frontend Web Service & Gateway (Angular SPA + Nginx Reverse Proxy)
+  # ----------------------------------------------------------------------------
+  threatlenz-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: threatlenz-frontend
+    restart: unless-stopped
+    ports:
+      # Expose unified frontend + proxied API on host (default: 80)
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      threatlenz-api:
+        condition: service_healthy
+    networks:
+      - threatlenz-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+# ------------------------------------------------------------------------------
+# Volumes & Networks Definitions
+# ------------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: threatlenz_postgres_data
+
+networks:
+  threatlenz-net:
+    name: threatlenz_network
+    driver: bridge

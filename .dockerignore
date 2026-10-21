@@ -1,0 +1,44 @@
+# Git & IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Python virtualenvs and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+
+# Datasets & large data
+data/raw/*
+data/processed/*
+data/external/*
+data/sample/*
+
+# Model binaries & caches
+models/
+*.pkl
+*.pickle
+*.joblib
+
+# Spark & Hadoop artifacts
+spark-warehouse/
+metastore_db/
+.hadoop/
+hadoop/
+
+# Node & Angular
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+
+# Logs
+*.log
