@@ -1,0 +1,1234 @@
+{
+  "report_name": "ThreatLenz-Phase5-Threat-Intelligence",
+  "pipeline_version": "1.0.0",
+  "run_id": "run_20261014_013008_2a2af9",
+  "timestamp": "2026-10-14T01:30:19.839924",
+  "execution_duration_seconds": 11.81,
+  "dataset_path": "E:\\Projects\\ThreatLenz\\data\\processed\\flows.parquet",
+  "source_manifest": {
+    "source_manifest_hash": "22d6470cfb100c00",
+    "files_count": 21,
+    "total_bytes": 811664902
+  },
+  "evidence_provenance": {
+    "provenance_type": "curated_dataset_flows",
+    "traffic_source": "CSE-CIC-IDS2018 enterprise emulation lab traffic",
+    "is_model_prediction": false,
+    "is_live_detection": false,
+    "is_independently_verified": false,
+    "campaign_interval": {
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "interval_semantics": "[window_start, window_end) half-open"
+    }
+  },
+  "model_governance": {
+    "model_artifact": "models/pilot_rf_model",
+    "model_status": "QUARANTINED_TARGET_LEAKAGE",
+    "quarantine_reason": "Confirmed target leakage: label_idx included in training feature vector (importance: 0.178853 in models/feature_metadata.json). Model inference is disabled for Phase 5 pipeline operations.",
+    "inference_executed": false,
+    "evaluation_metrics_status": "QUARANTINED_EXCLUDED_FROM_EVIDENCE"
+  },
+  "summary": {
+    "total_profiles_generated": 14,
+    "attack_categories_count": 13,
+    "benign_categories_count": 1,
+    "unknown_categories_count": 0,
+    "target_impact_status": "MISSING_EVIDENCE_WITHHELD"
+  },
+  "profiles": [
+    {
+      "profile_id": "d6ca8a85fe444e89",
+      "snapshot_id": "ab1752ccb4059eb2",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "Benign",
+        "raw_label": "Benign",
+        "attack_status": "BENIGN",
+        "is_attack": false,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "Benign",
+        "technique_id": null,
+        "technique_name": null,
+        "tactic": null,
+        "mapping_status": "not_applicable",
+        "rationale": "Benign baseline network traffic without adversary activity.",
+        "missing_telemetry": []
+      },
+      "flow_count": 5064128,
+      "total_bytes": 28755076557,
+      "total_packets": 63913355,
+      "active_observation_units": 8,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 0.0,
+          "frequency": 100.0,
+          "recurrence": 100.0,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 45.0,
+        "tlrs_normalized_heuristic": 52.9412,
+        "tlrs_normalized_rounded": 53,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-BENIGN-6a0251",
+          "threat_category": "Benign",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "9f3c84fbd5876e7c",
+      "snapshot_id": "b72ef2d98720e9f3",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "Bot",
+        "raw_label": "Bot",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "Bot",
+        "technique_id": "T1071.001",
+        "technique_name": "Application Layer Protocol: Web Protocols",
+        "tactic": "Command and Control",
+        "mapping_status": "unverified",
+        "rationale": "Netflow captures periodic outbound communication patterns consistent with C2 beaconing, but lacks application-layer payload and host process context to verify command-and-control protocol structure.",
+        "missing_telemetry": [
+          "Application layer payload content",
+          "HTTP request URI and headers",
+          "Endpoint process execution tree"
+        ]
+      },
+      "flow_count": 286191,
+      "total_bytes": 64846931,
+      "total_packets": 1313093,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 85.0,
+          "frequency": 90.94426620249733,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 59.2361,
+        "tlrs_normalized_heuristic": 69.6895,
+        "tlrs_normalized_rounded": 70,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: High"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-INVESTIGATE_C2-BOT-665459",
+          "threat_category": "Bot",
+          "priority": "High",
+          "action_type": "Investigation",
+          "summary": "Investigate internal endpoints exhibiting periodic outbound beaconing.",
+          "detailed_guidance": "Perform host forensic triage on systems initiating recurring communication intervals. Inspect DNS query logs, active socket states, and scheduled tasks to verify if unauthorized background processes or malware implants are active.",
+          "missing_evidence_required": [
+            "Application layer payload content",
+            "HTTP request URI and headers",
+            "Endpoint process execution tree"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-BOT-9b8569",
+          "threat_category": "Bot",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "dc8164c30c7c06a5",
+      "snapshot_id": "eee379d47c3f8daa",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "Brute Force - Web",
+        "raw_label": "Brute Force - Web",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "Brute Force - Web",
+        "technique_id": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "Credential Access",
+        "mapping_status": "candidate",
+        "rationale": "Repetitive short HTTP TCP flows targeting web ports (80/8080) characteristic of automated password spraying/guessing.",
+        "missing_telemetry": [
+          "HTTP 401/403 response error status codes",
+          "Web application authentication endpoint logs"
+        ]
+      },
+      "flow_count": 249,
+      "total_bytes": 8734495,
+      "total_packets": 18203,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 55.0,
+          "frequency": 39.93665578492894,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 34.4842,
+        "tlrs_normalized_heuristic": 40.5696,
+        "tlrs_normalized_rounded": 41,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-INVESTIGATE_AUTH-BRUTE_FORCE___WEB-d0fec1",
+          "threat_category": "Brute Force - Web",
+          "priority": "Medium",
+          "action_type": "Investigation",
+          "summary": "Correlate repetitive connection attempts with authentication daemon audit logs.",
+          "detailed_guidance": "Examine host authentication logs (e.g. sshd auth.log, web access logs) to evaluate whether credential spraying or password dictionary attempts occurred, and verify that multi-factor authentication or account lockouts were successfully enforced.",
+          "missing_evidence_required": [
+            "HTTP 401/403 response error status codes",
+            "Web application authentication endpoint logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-BRUTE_FORCE___WEB-fd227e",
+          "threat_category": "Brute Force - Web",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "03327bfb0a5766bc",
+      "snapshot_id": "a495c9b496b51da8",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "Brute Force - XSS",
+        "raw_label": "Brute Force - XSS",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "Brute Force - XSS",
+        "technique_id": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "Credential Access",
+        "mapping_status": "candidate",
+        "rationale": "Dataset artifact labeled as brute force attack leveraging automated submission tools against web input vectors.",
+        "missing_telemetry": [
+          "HTTP request parameters and POST body",
+          "Web application response logs"
+        ]
+      },
+      "flow_count": 79,
+      "total_bytes": 9117478,
+      "total_packets": 11481,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 55.0,
+          "frequency": 31.627118188174023,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 32.4068,
+        "tlrs_normalized_heuristic": 38.1256,
+        "tlrs_normalized_rounded": 38,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Low"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-INVESTIGATE_AUTH-BRUTE_FORCE___XSS-381762",
+          "threat_category": "Brute Force - XSS",
+          "priority": "Low",
+          "action_type": "Investigation",
+          "summary": "Correlate repetitive connection attempts with authentication daemon audit logs.",
+          "detailed_guidance": "Examine host authentication logs (e.g. sshd auth.log, web access logs) to evaluate whether credential spraying or password dictionary attempts occurred, and verify that multi-factor authentication or account lockouts were successfully enforced.",
+          "missing_evidence_required": [
+            "HTTP request parameters and POST body",
+            "Web application response logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-BRUTE_FORCE___XSS-002aae",
+          "threat_category": "Brute Force - XSS",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "a67c1ad9159e9180",
+      "snapshot_id": "30c3bcf831787d31",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DDoS-HOIC",
+        "raw_label": "DDoS-HOIC",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DDoS-HOIC",
+        "technique_id": "T1498.001",
+        "technique_name": "Network Denial of Service: Direct Network Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "High-volume distributed HTTP flood from multiple source addresses exhausting network bandwidth and connection pools.",
+        "missing_telemetry": [
+          "Upstream link saturation telemetries",
+          "Web server connection backlog metrics"
+        ]
+      },
+      "flow_count": 686012,
+      "total_bytes": 202087185,
+      "total_packets": 2190774,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 75.0,
+          "frequency": 97.27219521047213,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 56.818,
+        "tlrs_normalized_heuristic": 66.8448,
+        "tlrs_normalized_rounded": 67,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: High"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DDOS_HOIC-ddfb7b",
+          "threat_category": "DDoS-HOIC",
+          "priority": "High",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Upstream link saturation telemetries",
+            "Web server connection backlog metrics"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DDOS_HOIC-62afe2",
+          "threat_category": "DDoS-HOIC",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "a36b95b4a7f01a8e",
+      "snapshot_id": "5bd73c2681010280",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DDoS-LOIC-UDP",
+        "raw_label": "DDoS-LOIC-UDP",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DDoS-LOIC-UDP",
+        "technique_id": "T1498.001",
+        "technique_name": "Network Denial of Service: Direct Network Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "High-rate volumetric UDP packet flood targeting endpoint services.",
+        "missing_telemetry": [
+          "Router interface discard counters",
+          "Per-link bandwidth saturation telemetry"
+        ]
+      },
+      "flow_count": 1730,
+      "total_bytes": 6496575104,
+      "total_packets": 203017972,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 75.0,
+          "frequency": 53.9674350521466,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 45.9919,
+        "tlrs_normalized_heuristic": 54.1081,
+        "tlrs_normalized_rounded": 54,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DDOS_LOIC_UDP-dbe9ed",
+          "threat_category": "DDoS-LOIC-UDP",
+          "priority": "Medium",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Router interface discard counters",
+            "Per-link bandwidth saturation telemetry"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DDOS_LOIC_UDP-2aaf63",
+          "threat_category": "DDoS-LOIC-UDP",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "febac6a04660714a",
+      "snapshot_id": "0c5aca56aa4fca85",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DoS-GoldenEye",
+        "raw_label": "DoS-GoldenEye",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DoS-GoldenEye",
+        "technique_id": "T1499.003",
+        "technique_name": "Endpoint Denial of Service: Application Exhaustion Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "Application-layer HTTP Keep-Alive and Cache-Control abuse keeping sockets open and depleting worker thread pools.",
+        "missing_telemetry": [
+          "Web server worker thread status",
+          "Connection pool exhaustion logs"
+        ]
+      },
+      "flow_count": 41508,
+      "total_bytes": 38177143,
+      "total_packets": 253750,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 70.0,
+          "frequency": 76.96886346769976,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 49.7422,
+        "tlrs_normalized_heuristic": 58.5203,
+        "tlrs_normalized_rounded": 59,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DOS_GOLDENEYE-9c5844",
+          "threat_category": "DoS-GoldenEye",
+          "priority": "Medium",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Web server worker thread status",
+            "Connection pool exhaustion logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DOS_GOLDENEYE-1cb316",
+          "threat_category": "DoS-GoldenEye",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "e19ed04592581063",
+      "snapshot_id": "267a5574da86ffb2",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DoS-Hulk",
+        "raw_label": "DoS-Hulk",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DoS-Hulk",
+        "technique_id": "T1499.003",
+        "technique_name": "Endpoint Denial of Service: Application Exhaustion Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "High-rate HTTP GET flood with randomized user-agents and cache-busting headers exhausting web application request queues.",
+        "missing_telemetry": [
+          "Web server queue depth",
+          "Endpoint CPU and memory consumption metrics"
+        ]
+      },
+      "flow_count": 461912,
+      "total_bytes": 33334330,
+      "total_packets": 1140193,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 70.0,
+          "frequency": 94.40932074863849,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 54.1023,
+        "tlrs_normalized_heuristic": 63.6498,
+        "tlrs_normalized_rounded": 64,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: High"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DOS_HULK-491f6f",
+          "threat_category": "DoS-Hulk",
+          "priority": "High",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Web server queue depth",
+            "Endpoint CPU and memory consumption metrics"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DOS_HULK-ada5b4",
+          "threat_category": "DoS-Hulk",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "b1ec804fd014b76c",
+      "snapshot_id": "2b153721eaa111dc",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DoS-SlowHTTPTest",
+        "raw_label": "DoS-SlowHTTPTest",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DoS-SlowHTTPTest",
+        "technique_id": "T1499.003",
+        "technique_name": "Endpoint Denial of Service: Application Exhaustion Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "Slow HTTP POST/headers holding web connections open until limits are reached.",
+        "missing_telemetry": [
+          "Active TCP connection table holding durations",
+          "Web server timeout logs"
+        ]
+      },
+      "flow_count": 139890,
+      "total_bytes": 0,
+      "total_packets": 279780,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 65.0,
+          "frequency": 85.76311116956924,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 49.9408,
+        "tlrs_normalized_heuristic": 58.7539,
+        "tlrs_normalized_rounded": 59,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DOS_SLOWHTTPTEST-538660",
+          "threat_category": "DoS-SlowHTTPTest",
+          "priority": "Medium",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Active TCP connection table holding durations",
+            "Web server timeout logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DOS_SLOWHTTPTEST-aea3c3",
+          "threat_category": "DoS-SlowHTTPTest",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "8635a12cb8236c77",
+      "snapshot_id": "3969c05270579faa",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "DoS-Slowloris",
+        "raw_label": "DoS-Slowloris",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "DoS-Slowloris",
+        "technique_id": "T1499.003",
+        "technique_name": "Endpoint Denial of Service: Application Exhaustion Flood",
+        "tactic": "Impact",
+        "mapping_status": "candidate",
+        "rationale": "Periodic partial HTTP request headers keeping connections open indefinitely.",
+        "missing_telemetry": [
+          "Concurrent open socket states",
+          "Web server timeout logs"
+        ]
+      },
+      "flow_count": 10990,
+      "total_bytes": 12069142,
+      "total_packets": 105318,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 65.0,
+          "frequency": 67.34996154039152,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 45.3375,
+        "tlrs_normalized_heuristic": 53.3382,
+        "tlrs_normalized_rounded": 53,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-RATE_LIMIT-DOS_SLOWLORIS-98f17e",
+          "threat_category": "DoS-Slowloris",
+          "priority": "Medium",
+          "action_type": "Rate Limiting Review",
+          "summary": "Review application rate limiting and connection pool thresholds.",
+          "detailed_guidance": "Inspect ingress reverse proxy and firewall connection metrics to identify unusually dense connection clusters. Verify that connection timeout thresholds and keep-alive limits protect service availability without dropping legitimate traffic.",
+          "missing_evidence_required": [
+            "Concurrent open socket states",
+            "Web server timeout logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-DOS_SLOWLORIS-9f124c",
+          "threat_category": "DoS-Slowloris",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "c9b0f286697dbbaa",
+      "snapshot_id": "be169c067c0170f9",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "FTP-BruteForce",
+        "raw_label": "FTP-BruteForce",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "FTP-BruteForce",
+        "technique_id": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "Credential Access",
+        "mapping_status": "candidate",
+        "rationale": "High-frequency TCP connection attempts on port 21 characteristic of automated credential dictionary attacks.",
+        "missing_telemetry": [
+          "FTP server daemon authentication logs",
+          "Failed login error 530 records"
+        ]
+      },
+      "flow_count": 193360,
+      "total_bytes": 0,
+      "total_packets": 386720,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 60.0,
+          "frequency": 88.10611062332656,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 48.5265,
+        "tlrs_normalized_heuristic": 57.09,
+        "tlrs_normalized_rounded": 57,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-INVESTIGATE_AUTH-FTP_BRUTEFORCE-93222a",
+          "threat_category": "FTP-BruteForce",
+          "priority": "Medium",
+          "action_type": "Investigation",
+          "summary": "Correlate repetitive connection attempts with authentication daemon audit logs.",
+          "detailed_guidance": "Examine host authentication logs (e.g. sshd auth.log, web access logs) to evaluate whether credential spraying or password dictionary attempts occurred, and verify that multi-factor authentication or account lockouts were successfully enforced.",
+          "missing_evidence_required": [
+            "FTP server daemon authentication logs",
+            "Failed login error 530 records"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-FTP_BRUTEFORCE-e15805",
+          "threat_category": "FTP-BruteForce",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "1cc64c3bd96b2a8e",
+      "snapshot_id": "f2a39bb55096bb39",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "Infiltration",
+        "raw_label": "Infiltration",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "Infiltration",
+        "technique_id": "T1190",
+        "technique_name": "Exploit Public-Facing Application",
+        "tactic": "Initial Access",
+        "mapping_status": "unverified",
+        "rationale": "Simulated client-side software exploitation followed by pivot; Netflow alone cannot verify binary exploit payloads or host execution traces.",
+        "missing_telemetry": [
+          "Host process audit logs",
+          "Endpoint EDR alerts",
+          "Packet payloads"
+        ]
+      },
+      "flow_count": 161934,
+      "total_bytes": 395343611,
+      "total_packets": 1498299,
+      "active_observation_units": 2,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 90.0,
+          "frequency": 86.82230072836072,
+          "recurrence": 25.0,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 62.7056,
+        "tlrs_normalized_heuristic": 73.7713,
+        "tlrs_normalized_rounded": 74,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: High"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-ENRICH_PAYLOAD-INFILTRATION-cf45ea",
+          "threat_category": "Infiltration",
+          "priority": "High",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Correlate network flow anomalies with application and host security telemetries.",
+          "detailed_guidance": "Flow statistics suggest potential exploitation activity, but Netflow lacks payload inspection. Cross-reference events against Web Application Firewall (WAF) logs, database error logs, and endpoint detection alerts before concluding a breach attempt occurred.",
+          "missing_evidence_required": [
+            "Host process audit logs",
+            "Endpoint EDR alerts",
+            "Packet payloads"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-INFILTRATION-6fd89a",
+          "threat_category": "Infiltration",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "1ae97d108ece31f7",
+      "snapshot_id": "6a6539ec3a7fce53",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "SQL Injection",
+        "raw_label": "SQL Injection",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "SQL Injection",
+        "technique_id": "T1190",
+        "technique_name": "Exploit Public-Facing Application",
+        "tactic": "Initial Access",
+        "mapping_status": "unverified",
+        "rationale": "Web application vulnerability exploitation requiring payload inspection; Netflow only observes packet sizes and inter-arrival times without SQL query visibility.",
+        "missing_telemetry": [
+          "Decrypted HTTP request URI and body",
+          "WAF inspection alerts",
+          "Database error and audit logs"
+        ]
+      },
+      "flow_count": 34,
+      "total_bytes": 109324,
+      "total_packets": 281,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 80.0,
+          "frequency": 25.52464861737092,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 40.8812,
+        "tlrs_normalized_heuristic": 48.0955,
+        "tlrs_normalized_rounded": 48,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-ENRICH_PAYLOAD-SQL_INJECTION-10b497",
+          "threat_category": "SQL Injection",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Correlate network flow anomalies with application and host security telemetries.",
+          "detailed_guidance": "Flow statistics suggest potential exploitation activity, but Netflow lacks payload inspection. Cross-reference events against Web Application Firewall (WAF) logs, database error logs, and endpoint detection alerts before concluding a breach attempt occurred.",
+          "missing_evidence_required": [
+            "Decrypted HTTP request URI and body",
+            "WAF inspection alerts",
+            "Database error and audit logs"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-SQL_INJECTION-04fdbd",
+          "threat_category": "SQL Injection",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    },
+    {
+      "profile_id": "55aed7d780d5676a",
+      "snapshot_id": "3fbd0415d8e57f7f",
+      "run_id": "run_20261014_013008_2a2af9",
+      "source_manifest_hash": "22d6470cfb100c00",
+      "schema_version": "1.0",
+      "window_type": "full_campaign",
+      "window_start": "2018-02-14T00:00:00",
+      "window_end": "2018-03-03T00:00:00",
+      "category": {
+        "canonical_label": "SSH-BruteForce",
+        "raw_label": "SSH-BruteForce",
+        "attack_status": "ATTACK",
+        "is_attack": true,
+        "is_mapped": true
+      },
+      "mitre_mapping": {
+        "canonical_label": "SSH-BruteForce",
+        "technique_id": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "Credential Access",
+        "mapping_status": "candidate",
+        "rationale": "Repetitive rapid TCP handshakes on port 22 matching SSH credential brute forcing.",
+        "missing_telemetry": [
+          "sshd auth.log failed password attempts"
+        ]
+      },
+      "flow_count": 187589,
+      "total_bytes": 431477642,
+      "total_packets": 4291463,
+      "active_observation_units": 1,
+      "recurrence_denominator": 8,
+      "model_reliability": null,
+      "tlrs_result": {
+        "components": {
+          "severity": 60.0,
+          "frequency": 87.88678947113641,
+          "recurrence": 12.5,
+          "target_impact": null
+        },
+        "weights": {
+          "severity": 0.4,
+          "frequency": 0.25,
+          "recurrence": 0.2,
+          "target_impact": 0.15
+        },
+        "tlrs_complete": null,
+        "tlrs_complete_rounded": null,
+        "tlrs_partial_diagnostic": 48.4717,
+        "tlrs_normalized_heuristic": 57.0255,
+        "tlrs_normalized_rounded": 57,
+        "evidence_coverage": 0.85,
+        "scoring_status": "insufficient_evidence",
+        "risk_band": "Insufficient Evidence",
+        "provisional_risk_band": "DIAGNOSTIC_ONLY: Medium"
+      },
+      "advisories": [
+        {
+          "recommendation_id": "REC-INVESTIGATE_AUTH-SSH_BRUTEFORCE-0d54b1",
+          "threat_category": "SSH-BruteForce",
+          "priority": "Medium",
+          "action_type": "Investigation",
+          "summary": "Correlate repetitive connection attempts with authentication daemon audit logs.",
+          "detailed_guidance": "Examine host authentication logs (e.g. sshd auth.log, web access logs) to evaluate whether credential spraying or password dictionary attempts occurred, and verify that multi-factor authentication or account lockouts were successfully enforced.",
+          "missing_evidence_required": [
+            "sshd auth.log failed password attempts"
+          ],
+          "analyst_validation_required": true
+        },
+        {
+          "recommendation_id": "REC-ENRICH_ASSET-SSH_BRUTEFORCE-58b65e",
+          "threat_category": "SSH-BruteForce",
+          "priority": "Medium",
+          "action_type": "Telemetry Enrichment",
+          "summary": "Query enterprise asset inventory (CMDB) to resolve missing target impact.",
+          "detailed_guidance": "The operational risk band was withheld because destination asset criticality telemetry is missing from flow records. Link the observed destination port and network segment to an authoritative asset management database to calculate a verified complete TLRS.",
+          "missing_evidence_required": [
+            "Destination host asset criticality",
+            "Device role classification"
+          ],
+          "analyst_validation_required": true
+        }
+      ]
+    }
+  ]
+}
