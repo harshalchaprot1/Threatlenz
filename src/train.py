@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 from pyspark.ml import Pipeline, PipelineModel
 from pyspark.ml.classification import RandomForestClassificationModel, RandomForestClassifier
 from pyspark.ml.feature import Imputer, StringIndexer, VectorAssembler
+from pyspark.ml.functions import vector_to_array
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import DoubleType
@@ -137,6 +138,23 @@ class TrainingConfig(BaseModel):
     min_rare_class_samples: int = Field(
         default=500,
         description="Threshold below which rare classes are retained at 100% when protect_rare_classes=True.",
+    )
+    # Threshold decision policy controls (opt-in)
+    apply_threshold_policy: bool = Field(
+        default=False,
+        description="Whether to apply threshold decision policy. Opt-in by default to preserve raw argmax compatibility.",
+    )
+    tau_infiltration: float = Field(
+        default=0.60,
+        ge=0.0,
+        le=1.0,
+        description="Confidence threshold for Infiltration; unconfident predictions fallback to Benign.",
+    )
+    tau_brute_force_web: float = Field(
+        default=0.35,
+        ge=0.0,
+        le=1.0,
+        description="Confidence threshold for Brute Force - Web; unconfident predictions fallback to Benign.",
     )
     model_output_path: Optional[str] = None
     report_output_path: Optional[str] = None
@@ -614,9 +632,75 @@ def build_pipeline(feature_cols: List[str], config: TrainingConfig) -> Pipeline:
     return Pipeline(stages=stages)
 
 
+def apply_threshold_decision_policy(
+    predictions: DataFrame,
+    tau_infiltration: float = 0.60,
+    tau_brute_force_web: float = 0.35,
+    prediction_col: str = "prediction",
+    probability_col: str = "probability",
+    output_col: str = "adjusted_prediction",
+) -> DataFrame:
+    """Applies frozen validation-selected threshold decision policy to filter unconfident attack predictions.
+
+    Safeguards:
+    - Never overwrites the original prediction column; writes strictly to output_col ('adjusted_prediction').
+    - Evaluates using Spark-native Catalyst expressions (vector_to_array) for JVM-speed execution.
+    - Robust to null, NaN, and short probability vectors: preserves the original prediction whenever
+      probability cannot be safely evaluated.
+    - Selective fallback: Only reassigns to Benign (0.0) if:
+        1. argmax is Infiltration (index 11) AND p_11 < tau_infiltration
+        2. argmax is Brute Force - Web (index 2) AND p_2 < tau_brute_force_web
+    - All other 12 classes are strictly preserved.
+
+    Args:
+        predictions: Input DataFrame with prediction and probability vector columns.
+        tau_infiltration: Confidence threshold for Infiltration (default 0.60).
+        tau_brute_force_web: Confidence threshold for Brute Force - Web (default 0.35).
+        prediction_col: Column containing raw argmax prediction index.
+        probability_col: Column containing DenseVector class probabilities.
+        output_col: Destination column for adjusted prediction (default 'adjusted_prediction').
+
+    Returns:
+        DataFrame: Enriched DataFrame with new output_col preserved alongside prediction_col.
+    """
+    if probability_col not in predictions.columns or prediction_col not in predictions.columns:
+        return predictions.withColumn(output_col, F.col(prediction_col))
+
+    # Split rows into non-null probabilities and null/missing probabilities to prevent vector_to_array NPE
+    null_prob_df = predictions.filter(F.col(probability_col).isNull()).withColumn(
+        output_col, F.col(prediction_col)
+    )
+    valid_prob_df = predictions.filter(F.col(probability_col).isNotNull())
+
+    # Native Spark vector conversion
+    prob_arr = vector_to_array(F.col(probability_col))
+    arr_len = F.size(prob_arr)
+
+    cond_infil = (
+        (F.col(prediction_col) == 11.0)
+        & (arr_len >= 14)
+        & (~F.isnan(prob_arr[11]))
+        & (prob_arr[11] < tau_infiltration)
+    )
+    cond_web = (
+        (F.col(prediction_col) == 2.0)
+        & (arr_len >= 14)
+        & (~F.isnan(prob_arr[2]))
+        & (prob_arr[2] < tau_brute_force_web)
+    )
+
+    valid_adjusted_df = valid_prob_df.withColumn(
+        output_col,
+        F.when(cond_infil | cond_web, F.lit(0.0)).otherwise(F.col(prediction_col)),
+    )
+
+    return valid_adjusted_df.unionByName(null_prob_df)
+
+
 def evaluate_predictions(
     predictions: DataFrame,
     split_name: str = "test",
+    prediction_col: str = "prediction",
 ) -> Dict[str, Any]:
     """Computes comprehensive multiclass and binary threat evaluation metrics.
 
@@ -629,17 +713,18 @@ def evaluate_predictions(
       Attack Precision, and Attack F1.
 
     Args:
-        predictions: DataFrame containing 'label_idx' and 'prediction' columns.
+        predictions: DataFrame containing 'label_idx' and prediction columns.
         split_name: Name of evaluated partition ('val' or 'test').
+        prediction_col: Column name to evaluate against 'label_idx' (default 'prediction').
 
     Returns:
         Dict[str, Any]: Complete metrics report.
     """
-    logger.info("Aggregating multiclass confusion matrix for %s split...", split_name)
+    logger.info("Aggregating multiclass confusion matrix for %s split (column: %s)...", split_name, prediction_col)
 
     # Aggregate contingency table distributed in Spark (at most 14x14 = 196 rows collected)
     contingency_rows = (
-        predictions.groupBy("label_idx", "prediction")
+        predictions.groupBy("label_idx", prediction_col)
         .count()
         .collect()
     )
@@ -648,7 +733,7 @@ def evaluate_predictions(
     matrix = np.zeros((NUM_CLASSES, NUM_CLASSES), dtype=np.int64)
     for r in contingency_rows:
         true_idx = int(r["label_idx"])
-        pred_idx = int(r["prediction"])
+        pred_idx = int(r[prediction_col])
         cnt = int(r["count"])
         if 0 <= true_idx < NUM_CLASSES and 0 <= pred_idx < NUM_CLASSES:
             matrix[true_idx, pred_idx] = cnt
@@ -962,11 +1047,36 @@ def train_and_evaluate(
     # 6. Generate predictions and evaluate on held-out test split
     logger.info("Evaluating predictions on held-out test split (%d rows)...", test_df.count())
     test_predictions = pipeline_model.transform(test_df)
-    eval_report = evaluate_predictions(test_predictions, split_name="test")
+    pred_eval_col = "prediction"
+    if cfg.apply_threshold_policy:
+        logger.info(
+            "Applying threshold decision policy (tau_infil=%.2f, tau_web=%.2f)...",
+            cfg.tau_infiltration,
+            cfg.tau_brute_force_web,
+        )
+        test_predictions = apply_threshold_decision_policy(
+            test_predictions,
+            tau_infiltration=cfg.tau_infiltration,
+            tau_brute_force_web=cfg.tau_brute_force_web,
+            output_col="adjusted_prediction",
+        )
+        pred_eval_col = "adjusted_prediction"
+
+    eval_report = evaluate_predictions(test_predictions, split_name="test", prediction_col=pred_eval_col)
 
     # Also evaluate validation split for threshold checking
     val_predictions = pipeline_model.transform(val_df)
-    val_report = evaluate_predictions(val_predictions, split_name="val")
+    val_pred_eval_col = "prediction"
+    if cfg.apply_threshold_policy:
+        val_predictions = apply_threshold_decision_policy(
+            val_predictions,
+            tau_infiltration=cfg.tau_infiltration,
+            tau_brute_force_web=cfg.tau_brute_force_web,
+            output_col="adjusted_prediction",
+        )
+        val_pred_eval_col = "adjusted_prediction"
+
+    val_report = evaluate_predictions(val_predictions, split_name="val", prediction_col=val_pred_eval_col)
 
     # 7. Persist artifacts
     model_output_dir = Path(cfg.model_output_path or (settings.models_dir / "random_forest_model"))
