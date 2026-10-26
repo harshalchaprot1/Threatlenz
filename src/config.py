@@ -292,6 +292,13 @@ class Settings(BaseSettings):
     frequency_min_flows: int = 1
     frequency_max_reference_flows: int = 1_000_000
 
+    # Pipeline Model Inference Controls (Opt-In, Disabled by Default)
+    pipeline_enable_model_inference: bool = False
+    pipeline_model_path: Path = project_root / "models" / "clean_per_class_rf" / "model"
+    pipeline_apply_threshold_policy: bool = False
+    pipeline_tau_infiltration: float = 0.60
+    pipeline_tau_brute_force_web: float = 0.35
+
 
 # Singleton settings instance
 settings = Settings()

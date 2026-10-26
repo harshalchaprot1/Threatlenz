@@ -487,6 +487,17 @@ def load_threat_intelligence_report(
                 denom = int(p_data.get("recurrence_denominator", 8))
                 ratio = round(units / denom, 4) if denom > 0 else 0.0
 
+                # Operational reliability status string
+                rel_raw = p_data.get("model_reliability")
+                if isinstance(rel_raw, dict):
+                    rel_val = str(rel_raw.get("status")) if rel_raw.get("status") else None
+                elif hasattr(rel_raw, "status"):
+                    rel_val = str(rel_raw.status)
+                elif isinstance(rel_raw, str):
+                    rel_val = rel_raw
+                else:
+                    rel_val = None
+
                 profile_record = ThreatProfileRecord(
                     snapshot_id=snapshot_id,
                     profile_id=profile_id,
@@ -507,7 +518,7 @@ def load_threat_intelligence_report(
                     active_observation_units=units,
                     recurrence_denominator=denom,
                     recurrence_ratio=ratio,
-                    model_reliability=p_data.get("model_reliability"),
+                    model_reliability=rel_val,
                 )
                 active_session.add(profile_record)
                 active_session.flush()
