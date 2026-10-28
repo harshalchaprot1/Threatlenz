@@ -74,3 +74,4 @@ curl.exe -s "http://127.0.0.1/api/v1/profiles?limit=5"
 # 4. Run backend API and database regression tests
 docker exec threatlenz-api pytest -v test/test_api.py test/test_database.py
 ```
+
