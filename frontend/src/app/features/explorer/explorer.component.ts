@@ -47,12 +47,13 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
       <!-- Filter Controls Toolbar -->
       <div class="filter-toolbar">
         <mat-form-field appearance="outline" class="filter-field search-field">
-          <mat-label>Search Category</mat-label>
+          <mat-label>Search Threat Category</mat-label>
           <input
             matInput
             [(ngModel)]="searchCategory"
             (ngModelChange)="onSearchChange()"
-            placeholder="e.g. Bot, DoS, Infiltration"
+            placeholder="Search by category name..."
+
           />
           @if (searchCategory) {
             <button matSuffix mat-icon-button aria-label="Clear" (click)="searchCategory = ''; onSearchChange()">
@@ -67,7 +68,6 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
             <mat-option value="ALL">All Statuses</mat-option>
             <mat-option value="ATTACK">Attack Only (ATTACK)</mat-option>
             <mat-option value="BENIGN">Benign Baseline (BENIGN)</mat-option>
-            <mat-option value="UNKNOWN">Unmapped / Unknown</mat-option>
           </mat-select>
         </mat-form-field>
 
@@ -101,7 +101,7 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
       @if (!loading && !errorMessage) {
         <div class="table-card">
           <div class="table-responsive">
-            <table mat-table [dataSource]="profiles" class="threat-table">
+            <table mat-table [dataSource]="displayedProfiles" class="threat-table">
               <!-- Canonical Category Column -->
               <ng-container matColumnDef="canonical_label">
                 <th mat-header-cell *matHeaderCellDef>Category</th>
@@ -387,7 +387,8 @@ export class ExplorerComponent implements OnInit {
     'actions',
   ];
 
-  profiles: ThreatProfileSummary[] = [];
+  displayedProfiles: ThreatProfileSummary[] = [];
+  rawProfiles: ThreatProfileSummary[] = [];
   totalCount: number = 0;
   pageSize: number = 20;
   pageIndex: number = 0;
@@ -398,7 +399,7 @@ export class ExplorerComponent implements OnInit {
   loading: boolean = true;
   errorMessage: string | null = null;
 
-  constructor(private readonly apiService: ThreatLenzApiService) {}
+  constructor(private readonly apiService: ThreatLenzApiService) { }
 
   ngOnInit(): void {
     this.fetchProfiles();
@@ -408,24 +409,11 @@ export class ExplorerComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    const offset = this.pageIndex * this.pageSize;
-    const filterParams: any = {
-      limit: this.pageSize,
-      offset: offset,
-    };
-
-    if (this.searchCategory.trim()) {
-      filterParams.canonical_label = this.searchCategory.trim();
-    }
-
-    if (this.selectedStatus !== 'ALL') {
-      filterParams.attack_status = this.selectedStatus as AttackStatus;
-    }
-
-    this.apiService.listProfiles(filterParams).subscribe({
+    // Fetch full set of campaign profiles to support client-side filtering and pagination
+    this.apiService.listProfiles({ limit: 100, offset: 0 }).subscribe({
       next: (response) => {
-        this.profiles = response.items;
-        this.totalCount = response.total;
+        this.rawProfiles = response.items || [];
+        this.applyFilterAndPagination();
         this.loading = false;
       },
       error: (err) => {
@@ -435,26 +423,56 @@ export class ExplorerComponent implements OnInit {
     });
   }
 
+  applyFilterAndPagination(): void {
+    const query = this.searchCategory.trim().toLowerCase();
+    const status = this.selectedStatus;
+
+    // 1. Filter against both canonical_label and raw_label + attack_status
+    const filtered = this.rawProfiles.filter((p) => {
+      const matchesSearch =
+        !query ||
+        (p.canonical_label && p.canonical_label.toLowerCase().includes(query)) ||
+        (p.raw_label && p.raw_label.toLowerCase().includes(query));
+
+      const matchesStatus =
+        status === 'ALL' || p.attack_status === status;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    this.totalCount = filtered.length;
+
+    // Ensure page index is within valid bounds
+    const maxPageIndex = Math.max(0, Math.ceil(this.totalCount / this.pageSize) - 1);
+    if (this.pageIndex > maxPageIndex) {
+      this.pageIndex = 0;
+    }
+
+    // 2. Paginate filtered results
+    const startIndex = this.pageIndex * this.pageSize;
+    this.displayedProfiles = filtered.slice(startIndex, startIndex + this.pageSize);
+  }
+
   onSearchChange(): void {
     this.pageIndex = 0;
-    this.fetchProfiles();
+    this.applyFilterAndPagination();
   }
 
   onStatusChange(): void {
     this.pageIndex = 0;
-    this.fetchProfiles();
+    this.applyFilterAndPagination();
   }
 
   onPageChange(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
-    this.fetchProfiles();
+    this.applyFilterAndPagination();
   }
 
   resetFilters(): void {
     this.searchCategory = '';
     this.selectedStatus = 'ALL';
     this.pageIndex = 0;
-    this.fetchProfiles();
+    this.applyFilterAndPagination();
   }
 }

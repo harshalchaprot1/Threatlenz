@@ -139,7 +139,7 @@ import {
         <app-recurrence-heatmap [profiles]="profiles"></app-recurrence-heatmap>
 
         <!-- Active Pipeline Run Card -->
-        @if (latestRun) {
+        @if (latestRun && false) {
           <div class="panel-card run-card">
             <div class="panel-header">
               <div class="panel-title-group">
@@ -179,7 +179,7 @@ import {
         }
 
         <!-- Top Threat Profiles Summary Table -->
-        <div class="panel-card">
+        <div class="panel-card" *ngIf = false>
           <div class="panel-header">
             <div class="panel-title-group">
               <span class="material-symbols-outlined panel-icon">grid_view</span>
@@ -521,7 +521,7 @@ export class DashboardComponent implements OnInit {
   latestRun: PipelineRunSummary | null = null;
   profiles: ThreatProfileSummary[] = [];
 
-  constructor(private readonly apiService: ThreatLenzApiService) {}
+  constructor(private readonly apiService: ThreatLenzApiService) { }
 
   ngOnInit(): void {
     this.loadDashboardData();

@@ -33,6 +33,7 @@ router = APIRouter(prefix="/api/v1/profiles", tags=["Threat Profiles"])
 def list_profiles(
     run_id: Optional[str] = Query(None, description="Filter profiles by pipeline execution run_id"),
     canonical_label: Optional[str] = Query(None, description="Filter by canonical category label (e.g., 'Bot', 'Benign')"),
+    search: Optional[str] = Query(None, description="Case-insensitive partial search across canonical and raw category labels"),
     attack_status: Optional[str] = Query(None, description="Filter by attack status ('ATTACK', 'BENIGN', 'UNKNOWN')"),
     is_attack: Optional[bool] = Query(None, description="Filter by boolean attack indicator"),
     limit: int = Query(default=20, ge=1, le=100, description="Maximum profiles to return"),
@@ -46,6 +47,12 @@ def list_profiles(
         conditions.append(ThreatProfileRecord.run_id == run_id)
     if canonical_label:
         conditions.append(ThreatProfileRecord.canonical_label == canonical_label)
+    if search and search.strip():
+        search_term = f"%{search.strip()}%"
+        conditions.append(
+            ThreatProfileRecord.canonical_label.ilike(search_term)
+            | ThreatProfileRecord.raw_label.ilike(search_term)
+        )
     if attack_status:
         conditions.append(ThreatProfileRecord.attack_status == attack_status)
     if is_attack is not None:
