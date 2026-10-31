@@ -373,7 +373,7 @@ export class CapturedDayBarComponent {
         formattedDate,
         dayOfWeek,
         totalFlows: d.total_flows,
-        formattedFlows: d.total_flows.toLocaleString(),
+        formattedFlows: d.total_flows.toLocaleString('en-US'),
         barHeightPct: heightPct,
       };
     });

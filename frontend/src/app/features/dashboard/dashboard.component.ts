@@ -508,7 +508,7 @@ export class DashboardComponent implements OnInit {
 
   get totalFlowsFormatted(): string {
     const total = this.profiles.reduce((acc, p) => acc + (p.flow_count || 0), 0);
-    return total > 0 ? total.toLocaleString() : (this.loading ? '...' : '0');
+    return total > 0 ? total.toLocaleString('en-US') : (this.loading ? '...' : '0');
   }
 
   get attackCategoriesCount(): number {
@@ -520,7 +520,7 @@ export class DashboardComponent implements OnInit {
 
   get benignFlowsFormatted(): string {
     const benign = this.profiles.find((p) => p.canonical_label === 'Benign');
-    return benign ? benign.flow_count.toLocaleString() : (this.loading ? '...' : '0');
+    return benign ? benign.flow_count.toLocaleString('en-US') : (this.loading ? '...' : '0');
   }
 
   get operationalRiskStatus(): string {

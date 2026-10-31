@@ -7,163 +7,145 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     @if (!isConfirmed) {
-      <div class="evidence-alert-container" role="alert" aria-live="polite">
-        <div class="alert-icon-col">
-          <span class="material-symbols-outlined alert-icon">policy</span>
+      <div class="evidence-panel" role="region" aria-label="Operational Risk Governance Policy">
+        <div class="panel-icon-col">
+          <span class="material-symbols-outlined panel-icon">verified_user</span>
         </div>
-        <div class="alert-content-col">
-          <div class="alert-title-row">
-            <span class="alert-title">Operational Risk Score Withheld (Evidence Safeguard)</span>
-            <span class="coverage-pill">
-              {{ (evidenceCoverage * 100).toFixed(1) }}% Evidence Coverage
+        <div class="panel-content-col">
+          <div class="panel-title-row">
+            <span class="panel-title">Operational Risk Assessment: Not Rated</span>
+            <span class="coverage-tag">
+              Evidence Coverage: {{ (evidenceCoverage * 100).toFixed(0) }}%
             </span>
           </div>
 
-          <p class="alert-message">
-            Host-level destination asset criticality (Target Impact telemetry) is absent in this Netflow capture.
-            Under ThreatLenz Governance Policy, <strong>the operational TLRS rating is strictly withheld as "Insufficient Evidence"</strong>.
-            Any computed heuristic is strictly diagnostic.
+          <p class="panel-message">
+            Host destination asset criticality telemetry (Target Impact) is absent in this Netflow observation window.
+            In compliance with ThreatLenz Governance Policy, <strong>the overall operational risk rating is not assigned</strong> pending full telemetry.
           </p>
-
-          @if (provisionalRiskBand) {
-            <div class="diagnostic-indicator">
-              <span class="diagnostic-tag">DIAGNOSTIC ONLY — NON-OPERATIONAL:</span>
-              <span class="diagnostic-val">{{ provisionalRiskBand }}</span>
-            </div>
-          }
         </div>
       </div>
     } @else {
-      <div class="confirmed-alert-container">
-        <span class="material-symbols-outlined confirmed-icon">verified_user</span>
-        <div class="confirmed-text">
-          <span class="confirmed-title">Confirmed Operational Evidence</span>
-          <span class="confirmed-sub">All 4 TLRS telemetry factors (Severity, Frequency, Recurrence, Target Impact) fully observed.</span>
+      <div class="confirmed-panel" role="region" aria-label="Operational Risk Assessment Confirmed">
+        <div class="panel-icon-col">
+          <span class="material-symbols-outlined confirmed-icon">verified_user</span>
+        </div>
+        <div class="panel-content-col">
+          <div class="panel-title-row">
+            <span class="confirmed-title">Confirmed Operational Evidence</span>
+            <span class="confirmed-tag">100% Coverage</span>
+          </div>
+          <p class="confirmed-message">
+            All 4 TLRS telemetry factors (Severity, Frequency, Recurrence, and Target Impact) are fully observed and rated.
+          </p>
         </div>
       </div>
     }
   `,
   styles: [`
-    .evidence-alert-container {
-      display: flex;
-      gap: 14px;
-      padding: 12px 16px;
-      background: rgba(245, 158, 11, 0.05);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: 6px;
-      margin-bottom: 0;
-    }
-
-    .alert-icon-col {
+    .evidence-panel {
       display: flex;
       align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--tl-bg-surface, #1E293B);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      border-left: 3px solid var(--tl-cyan, #06B6D4);
+      border-radius: 6px;
+    }
+
+    .panel-icon-col {
+      display: flex;
+      align-items: center;
       padding-top: 1px;
-      .alert-icon {
-        font-size: 22px;
-        color: #F59E0B;
+
+      .panel-icon {
+        font-size: 20px;
+        color: var(--tl-cyan, #06B6D4);
       }
     }
 
-    .alert-content-col {
+    .panel-content-col {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
 
-    .alert-title-row {
+    .panel-title-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
 
-    .alert-title {
+    .panel-title {
       font-size: 13px;
       font-weight: 700;
-      color: #F59E0B;
+      color: var(--tl-text-primary, #F8FAFC);
       letter-spacing: -0.1px;
     }
 
-    .coverage-pill {
-      font-size: 10px;
-      font-weight: 700;
-      background: rgba(245, 158, 11, 0.15);
-      color: #FDE68A;
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      padding: 1px 7px;
+    .coverage-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--tl-text-secondary, #94A3B8);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      padding: 2px 8px;
       border-radius: 4px;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
     }
 
-    .alert-message {
+    .panel-message {
       font-size: 12px;
-      color: #94A3B8;
+      color: var(--tl-text-secondary, #94A3B8);
       margin: 0;
-      line-height: 1.45;
+      line-height: 1.5;
 
       strong {
-        color: #E2E8F0;
+        color: var(--tl-text-primary, #F8FAFC);
+        font-weight: 600;
       }
     }
 
-    .diagnostic-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 2px;
-      padding: 3px 8px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(245, 158, 11, 0.25);
-      border-radius: 4px;
-      width: fit-content;
-    }
-
-    .diagnostic-tag {
-      font-size: 10px;
-      font-weight: 700;
-      color: #F59E0B;
-      letter-spacing: 0.5px;
-    }
-
-    .diagnostic-val {
-      font-size: 11px;
-      font-weight: 600;
-      color: #CBD5E1;
-      font-family: monospace;
-    }
-
-    .confirmed-alert-container {
+    .confirmed-panel {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      background: rgba(16, 185, 129, 0.05);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--tl-bg-surface, #1E293B);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      border-left: 3px solid #10B981;
       border-radius: 6px;
-      margin-bottom: 0;
     }
 
     .confirmed-icon {
-      font-size: 24px;
-      color: #34D399;
-    }
-
-    .confirmed-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      font-size: 20px;
+      color: #10B981;
     }
 
     .confirmed-title {
       font-size: 13px;
       font-weight: 700;
-      color: #34D399;
+      color: var(--tl-text-primary, #F8FAFC);
     }
 
-    .confirmed-sub {
+    .confirmed-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .confirmed-message {
       font-size: 12px;
-      color: #9CA3AF;
+      color: var(--tl-text-secondary, #94A3B8);
+      margin: 0;
+      line-height: 1.5;
     }
   `],
 })

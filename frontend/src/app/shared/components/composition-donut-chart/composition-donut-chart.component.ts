@@ -286,7 +286,7 @@ export class CompositionDonutChartComponent {
     }
 
     const total = benignFlows + attackFlows + unknownFlows;
-    this.totalFormatted = total > 1000000 ? (total / 1000000).toFixed(2) + 'M' : total.toLocaleString();
+    this.totalFormatted = total > 1000000 ? (total / 1000000).toFixed(2) + 'M' : total.toLocaleString('en-US');
 
     // Circumference of radius 60 circle = 2 * PI * 60 = 376.99
     const circumference = 2 * Math.PI * 60;
@@ -323,7 +323,7 @@ export class CompositionDonutChartComponent {
       return {
         label: item.label,
         count: item.count,
-        formattedCount: item.count.toLocaleString(),
+        formattedCount: item.count.toLocaleString('en-US'),
         percentage: pct,
         color: item.color,
         dashArray: dashArray,

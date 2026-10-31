@@ -343,7 +343,7 @@ export class CategoryBarChartComponent {
         snapshot_id: p.snapshot_id,
         label: p.canonical_label,
         flowCount: count,
-        formattedCount: count.toLocaleString(),
+        formattedCount: count.toLocaleString('en-US'),
         percentage: pct,
         barWidthPct: Math.min(Math.max(barWidthPct, 0), 100),
         isAttack: p.attack_status === 'ATTACK',

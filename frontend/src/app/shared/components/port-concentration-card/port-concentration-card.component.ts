@@ -153,20 +153,66 @@ import { DestinationPortAnalyticsResponse, CategoryPortAnalysis, PortConcentrati
     }
 
     .selector-wrapper {
-      min-width: 180px;
+      min-width: 190px;
+      display: flex;
+      align-items: center;
+
+      .category-select {
+        width: 100%;
+        margin-bottom: -1.25em; /* Compensate for Angular Material form-field baseline spacing */
+      }
 
       ::ng-deep .mat-mdc-form-field-subscript-wrapper {
         display: none;
       }
 
       ::ng-deep .mat-mdc-text-field-wrapper {
-        padding: 0 10px;
-        background: rgba(255, 255, 255, 0.03);
-        height: 34px;
+        padding: 0 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 4px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+      }
+
+      ::ng-deep .mat-mdc-form-field-flex {
+        align-items: center;
+        height: 36px;
+      }
+
+      ::ng-deep .mat-mdc-form-field-infix {
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        min-height: unset;
+      }
+
+      ::ng-deep .mat-mdc-select {
+        display: flex;
+        align-items: center;
+      }
+
+      ::ng-deep .mat-mdc-select-trigger {
+        display: flex;
+        align-items: center;
+        height: 100%;
       }
 
       ::ng-deep .mat-mdc-select-value {
         font-size: 12px;
+        font-weight: 500;
+        color: var(--tl-text-primary);
+        line-height: normal;
+      }
+
+      ::ng-deep .mat-mdc-select-arrow-wrapper {
+        transform: translateY(0);
+        display: flex;
+        align-items: center;
+      }
+
+      ::ng-deep .mat-mdc-floating-label {
+        top: 18px !important;
+        font-size: 11px;
       }
     }
 
