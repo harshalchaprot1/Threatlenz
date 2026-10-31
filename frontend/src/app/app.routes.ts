@@ -4,6 +4,7 @@ import { ExplorerComponent } from './features/explorer/explorer.component';
 import { ProfileDetailComponent } from './features/profile-detail/profile-detail.component';
 import { GovernanceComponent } from './features/governance/governance.component';
 import { RunsComponent } from './features/runs/runs.component';
+import { ReportsComponent } from './features/reports/reports.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -12,5 +13,6 @@ export const routes: Routes = [
   { path: 'profiles/:id', component: ProfileDetailComponent, title: 'ThreatLenz — Profile Detail' },
   { path: 'governance', component: GovernanceComponent, title: 'ThreatLenz — Model Governance' },
   { path: 'runs', component: RunsComponent, title: 'ThreatLenz — Pipeline Runs' },
+  { path: 'reports', component: ReportsComponent, title: 'ThreatLenz — Intelligence Reports' },
   { path: '**', redirectTo: 'dashboard' },
 ];

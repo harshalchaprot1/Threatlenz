@@ -74,11 +74,11 @@ interface RecurrenceItem {
     .recurrence-card {
       background: var(--tl-bg-surface);
       border: 1px solid var(--tl-border);
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 6px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .recurrence-header {
@@ -87,8 +87,8 @@ interface RecurrenceItem {
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .recurrence-title-group {
@@ -98,49 +98,50 @@ interface RecurrenceItem {
     }
 
     .recurrence-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       color: var(--tl-text-primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .recurrence-subtitle {
-      font-size: 12px;
-      color: var(--tl-text-secondary);
+      font-size: 11px;
+      color: var(--tl-text-muted);
     }
 
     .horizon-badge {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(6, 182, 212, 0.08);
-      border: 1px solid rgba(6, 182, 212, 0.25);
-      color: var(--tl-accent-cyan, #06B6D4);
-      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--tl-text-secondary);
+      padding: 3px 8px;
       border-radius: 4px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
 
       .horizon-icon {
         font-size: 14px;
+        color: var(--tl-cyan, #06B6D4);
       }
     }
 
     .recurrence-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
     }
 
     .recurrence-item {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.015);
       border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 6px;
-      padding: 12px;
+      border-radius: 4px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .item-header {
@@ -151,7 +152,7 @@ interface RecurrenceItem {
     }
 
     .item-name {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--tl-text-primary);
       white-space: nowrap;
@@ -160,16 +161,16 @@ interface RecurrenceItem {
     }
 
     .unit-count {
-      font-size: 11px;
+      font-size: 10px;
       font-family: monospace;
-      color: var(--tl-text-secondary);
+      color: var(--tl-text-muted);
     }
 
     .blocks-row {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      gap: 4px;
-      height: 10px;
+      gap: 3px;
+      height: 8px;
     }
 
     .day-block {
@@ -177,17 +178,15 @@ interface RecurrenceItem {
       height: 100%;
 
       &.block-active-attack {
-        background: var(--tl-crimson, #EF4444);
-        box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+        background: #EF4444;
       }
 
       &.block-active-benign {
-        background: var(--tl-emerald, #10B981);
-        box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+        background: #10B981;
       }
 
       &.block-inactive {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.05);
       }
     }
 
@@ -196,7 +195,7 @@ interface RecurrenceItem {
       align-items: center;
       justify-content: space-between;
       gap: 6px;
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .recurrence-pct {
@@ -204,21 +203,21 @@ interface RecurrenceItem {
     }
 
     .persistence-label {
-      font-weight: 600;
-      font-size: 10px;
+      font-weight: 700;
+      font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
 
       &.p-continuous {
-        color: var(--tl-emerald, #10B981);
+        color: #10B981;
       }
 
       &.p-frequent {
-        color: var(--tl-amber, #F59E0B);
+        color: #F59E0B;
       }
 
       &.p-intermittent {
-        color: var(--tl-accent-cyan, #06B6D4);
+        color: var(--tl-cyan, #06B6D4);
       }
 
       &.p-single {
@@ -227,7 +226,7 @@ interface RecurrenceItem {
     }
 
     .recurrence-footer {
-      padding-top: 10px;
+      padding-top: 8px;
       border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
 
@@ -239,8 +238,8 @@ interface RecurrenceItem {
       color: var(--tl-text-muted);
 
       .note-icon {
-        font-size: 14px;
-        color: var(--tl-accent-cyan, #06B6D4);
+        font-size: 13px;
+        color: var(--tl-cyan, #06B6D4);
       }
     }
   `],

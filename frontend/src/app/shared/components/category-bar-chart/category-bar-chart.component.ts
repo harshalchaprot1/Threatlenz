@@ -87,11 +87,13 @@ interface BarItem {
     .chart-container {
       background: var(--tl-bg-surface);
       border: 1px solid var(--tl-border);
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 6px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      height: 100%;
+      box-sizing: border-box;
     }
 
     .chart-header {
@@ -100,8 +102,8 @@ interface BarItem {
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .chart-title-group {
@@ -111,23 +113,23 @@ interface BarItem {
     }
 
     .chart-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       color: var(--tl-text-primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .chart-subtitle {
-      font-size: 12px;
-      color: var(--tl-text-secondary);
+      font-size: 11px;
+      color: var(--tl-text-muted);
     }
 
     .scale-mode-toggle {
       display: flex;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--tl-border);
-      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
       padding: 2px;
     }
 
@@ -135,11 +137,13 @@ interface BarItem {
       background: transparent;
       border: none;
       color: var(--tl-text-muted);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
       cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
       transition: all 0.15s ease;
 
       &:hover {
@@ -147,70 +151,72 @@ interface BarItem {
       }
 
       &.active {
-        background: var(--tl-accent-cyan, #06B6D4);
-        color: #0B1120;
+        background: rgba(6, 182, 212, 0.2);
+        color: var(--tl-cyan, #06B6D4);
+        border: 1px solid rgba(6, 182, 212, 0.3);
       }
     }
 
     .bars-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 4px;
+      flex: 1;
     }
 
     .bar-row {
       display: grid;
-      grid-template-columns: 180px 1fr 140px;
+      grid-template-columns: 140px 1fr 110px;
       align-items: center;
-      gap: 16px;
-      padding: 6px 10px;
-      border-radius: 6px;
+      gap: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
       cursor: pointer;
-      transition: background 0.15s ease;
+      transition: background 0.12s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.03);
 
         .item-name {
-          color: var(--tl-accent-cyan, #06B6D4);
+          color: var(--tl-cyan, #06B6D4);
         }
       }
 
       @media (max-width: 768px) {
-        grid-template-columns: 130px 1fr 100px;
-        gap: 10px;
+        grid-template-columns: 110px 1fr 90px;
+        gap: 8px;
       }
     }
 
     .bar-label-col {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
       overflow: hidden;
     }
 
     .item-name {
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--tl-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      transition: color 0.15s ease;
+      transition: color 0.12s ease;
     }
 
     .item-status {
-      font-size: 10px;
-      font-weight: 600;
+      font-size: 9px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
 
       &.status-attack {
-        color: var(--tl-crimson, #EF4444);
+        color: #EF4444;
       }
 
       &.status-benign {
-        color: var(--tl-emerald, #10B981);
+        color: #10B981;
       }
     }
 
@@ -220,48 +226,50 @@ interface BarItem {
 
     .bar-track {
       width: 100%;
-      height: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 6px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 4px;
       overflow: hidden;
       position: relative;
     }
 
     .bar-fill {
       height: 100%;
-      border-radius: 6px;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 4px;
+      transition: width 0.3s ease;
 
       &.fill-attack {
-        background: linear-gradient(90deg, #F87171, #EF4444);
+        background: #EF4444;
       }
 
       &.fill-benign {
-        background: linear-gradient(90deg, #34D399, #10B981);
+        background: #10B981;
       }
     }
 
     .bar-metrics-col {
       display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
+      align-items: baseline;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
     .item-count {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       font-family: monospace;
       color: var(--tl-text-primary);
     }
 
     .item-pct {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--tl-text-muted);
+      min-width: 36px;
+      text-align: right;
     }
 
     .chart-footer {
-      padding-top: 10px;
+      padding-top: 8px;
       border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
 
@@ -273,8 +281,8 @@ interface BarItem {
       color: var(--tl-text-muted);
 
       .hint-icon {
-        font-size: 14px;
-        color: var(--tl-accent-cyan, #06B6D4);
+        font-size: 13px;
+        color: var(--tl-cyan, #06B6D4);
       }
     }
   `],

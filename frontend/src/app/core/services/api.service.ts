@@ -5,14 +5,18 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   AdvisoriesListResponse,
+  DestinationPortAnalyticsResponse,
+  FeatureRedundancyResponse,
   HealthResponse,
   MitreMappingResponse,
+  ModelDiagnosticsResponse,
   PaginatedResponse,
   PipelineRunDetail,
   PipelineRunSummary,
   ProfileFilterParams,
   RiskAssessmentResponse,
   ServiceMetadata,
+  TemporalAnalyticsResponse,
   ThreatProfileSummary,
 } from '../models';
 
@@ -129,6 +133,42 @@ export class ThreatLenzApiService {
   getProfileAdvisories(snapshotId: string): Observable<AdvisoriesListResponse> {
     return this.http
       .get<AdvisoriesListResponse>(`${this.baseUrl}/api/v1/profiles/${encodeURIComponent(snapshotId)}/advisories`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Temporal distribution metrics across the 8 campaign observation dates.
+   */
+  getTemporalAnalytics(): Observable<TemporalAnalyticsResponse> {
+    return this.http
+      .get<TemporalAnalyticsResponse>(`${this.baseUrl}/api/v1/analytics/temporal`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Destination port concentration metrics for all 14 evaluated threat categories.
+   */
+  getPortAnalytics(): Observable<DestinationPortAnalyticsResponse> {
+    return this.http
+      .get<DestinationPortAnalyticsResponse>(`${this.baseUrl}/api/v1/analytics/ports`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Clean Random Forest evaluation diagnostics, feature importances, and confusion matrices.
+   */
+  getModelDiagnostics(): Observable<ModelDiagnosticsResponse> {
+    return this.http
+      .get<ModelDiagnosticsResponse>(`${this.baseUrl}/api/v1/analytics/model-diagnostics`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Complete 9-pair feature redundancy and multicollinearity audit.
+   */
+  getFeatureRedundancy(): Observable<FeatureRedundancyResponse> {
+    return this.http
+      .get<FeatureRedundancyResponse>(`${this.baseUrl}/api/v1/analytics/feature-redundancy`)
       .pipe(catchError(this.handleError));
   }
 

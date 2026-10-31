@@ -87,53 +87,51 @@ interface Segment {
     .donut-card {
       background: var(--tl-bg-surface);
       border: 1px solid var(--tl-border);
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 6px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
       height: 100%;
+      box-sizing: border-box;
     }
 
     .donut-header {
       display: flex;
       flex-direction: column;
       gap: 2px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .donut-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
       color: var(--tl-text-primary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .donut-subtitle {
-      font-size: 12px;
-      color: var(--tl-text-secondary);
+      font-size: 11px;
+      color: var(--tl-text-muted);
     }
 
     .donut-content {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 28px;
-      flex-wrap: wrap;
-
-      @media (max-width: 600px) {
-        flex-direction: column;
-        gap: 20px;
-      }
+      gap: 20px;
+      flex: 1;
+      justify-content: space-around;
     }
 
     .svg-wrapper {
       position: relative;
-      width: 170px;
-      height: 170px;
+      width: 220px;
+      height: 220px;
       flex-shrink: 0;
-      margin: 0 auto;
+      margin: 8px auto;
     }
 
     .donut-svg {
@@ -144,11 +142,11 @@ interface Segment {
     }
 
     .donut-bg-ring {
-      stroke: rgba(255, 255, 255, 0.05);
+      stroke: rgba(255, 255, 255, 0.04);
     }
 
     .donut-segment {
-      transition: stroke-dasharray 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: stroke-dasharray 0.4s ease;
     }
 
     .donut-center-text {
@@ -164,26 +162,26 @@ interface Segment {
     }
 
     .center-val {
-      font-size: 14px;
+      font-size: 20px;
       font-weight: 700;
       font-family: monospace;
       color: var(--tl-text-primary);
-      line-height: 1.2;
+      line-height: 1.1;
     }
 
     .center-label {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       color: var(--tl-text-muted);
+      margin-top: 2px;
     }
 
     .donut-legend {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      flex: 1;
-      min-width: 220px;
+      gap: 8px;
+      width: 100%;
     }
 
     .legend-row {
@@ -191,9 +189,9 @@ interface Segment {
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      padding: 6px 8px;
+      padding: 8px 12px;
       background: rgba(255, 255, 255, 0.02);
-      border-radius: 6px;
+      border-radius: 4px;
       border: 1px solid rgba(255, 255, 255, 0.04);
     }
 
@@ -204,14 +202,14 @@ interface Segment {
     }
 
     .color-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
     .legend-name {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--tl-text-primary);
     }
@@ -219,35 +217,36 @@ interface Segment {
     .legend-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .legend-count {
       font-size: 12px;
       font-family: monospace;
-      color: var(--tl-text-secondary);
+      color: var(--tl-text-muted);
     }
 
     .legend-pct {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--tl-text-primary);
-      min-width: 42px;
+      min-width: 44px;
       text-align: right;
     }
 
     .composition-note {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 6px;
       font-size: 11px;
       color: var(--tl-text-muted);
       margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
 
       .note-icon {
         font-size: 14px;
-        color: var(--tl-accent-cyan, #06B6D4);
-        margin-top: 1px;
+        color: var(--tl-cyan, #06B6D4);
       }
     }
   `],

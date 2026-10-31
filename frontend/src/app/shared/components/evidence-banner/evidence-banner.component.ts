@@ -46,21 +46,21 @@ import { CommonModule } from '@angular/common';
   styles: [`
     .evidence-alert-container {
       display: flex;
-      gap: 16px;
-      padding: 16px 20px;
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: 8px;
-      margin-bottom: 20px;
+      gap: 14px;
+      padding: 12px 16px;
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 6px;
+      margin-bottom: 0;
     }
 
     .alert-icon-col {
       display: flex;
       align-items: flex-start;
-      padding-top: 2px;
+      padding-top: 1px;
       .alert-icon {
-        font-size: 28px;
-        color: #FBBF24;
+        font-size: 22px;
+        color: #F59E0B;
       }
     }
 
@@ -68,7 +68,7 @@ import { CommonModule } from '@angular/common';
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .alert-title-row {
@@ -79,62 +79,69 @@ import { CommonModule } from '@angular/common';
     }
 
     .alert-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      color: #FBBF24;
-      letter-spacing: -0.2px;
+      color: #F59E0B;
+      letter-spacing: -0.1px;
     }
 
     .coverage-pill {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      background: rgba(245, 158, 11, 0.2);
+      background: rgba(245, 158, 11, 0.15);
       color: #FDE68A;
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      padding: 2px 8px;
-      border-radius: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 1px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
     }
 
     .alert-message {
-      font-size: 13px;
-      color: #D1D5DB;
+      font-size: 12px;
+      color: #94A3B8;
       margin: 0;
-      line-height: 1.5;
+      line-height: 1.45;
+
+      strong {
+        color: #E2E8F0;
+      }
     }
 
     .diagnostic-indicator {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 6px;
-      padding: 6px 12px;
-      background: rgba(17, 24, 39, 0.6);
-      border: 1px dashed rgba(245, 158, 11, 0.4);
-      border-radius: 6px;
+      margin-top: 2px;
+      padding: 3px 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 4px;
+      width: fit-content;
     }
 
     .diagnostic-tag {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       color: #F59E0B;
       letter-spacing: 0.5px;
     }
 
     .diagnostic-val {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
-      color: #F3F4F6;
+      color: #CBD5E1;
+      font-family: monospace;
     }
 
     .confirmed-alert-container {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 12px 18px;
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 8px;
-      margin-bottom: 20px;
+      gap: 12px;
+      padding: 10px 16px;
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 6px;
+      margin-bottom: 0;
     }
 
     .confirmed-icon {

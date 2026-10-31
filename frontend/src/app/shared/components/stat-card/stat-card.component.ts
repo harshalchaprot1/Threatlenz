@@ -36,15 +36,15 @@ import { CommonModule } from '@angular/common';
     .stat-card {
       background: var(--tl-bg-surface);
       border: 1px solid var(--tl-border);
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 6px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      gap: 6px;
+      transition: border-color 0.15s ease;
 
       &:hover {
-        border-color: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.12);
       }
     }
 
@@ -55,88 +55,91 @@ import { CommonModule } from '@angular/common';
     }
 
     .stat-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--tl-text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
     }
 
     .stat-icon-wrapper {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      background: rgba(6, 182, 212, 0.1);
-      border: 1px solid rgba(6, 182, 212, 0.2);
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
 
       .stat-icon {
-        font-size: 18px;
-        color: var(--tl-cyan);
+        font-size: 16px;
+        color: var(--tl-text-muted);
       }
     }
 
     .stat-body {
       display: flex;
       align-items: baseline;
-      gap: 10px;
+      justify-content: space-between;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
     .stat-value {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       color: var(--tl-text-primary);
       letter-spacing: -0.5px;
       font-variant-numeric: tabular-nums;
+      line-height: 1.1;
     }
 
     .stat-badge {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 3px;
+      letter-spacing: 0.3px;
     }
 
     .badge-default {
-      background: var(--tl-bg-card);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--tl-text-secondary);
     }
 
     .badge-success {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34D399;
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+      color: #10B981;
+      border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     .badge-warning {
-      background: rgba(245, 158, 11, 0.15);
-      color: #FBBF24;
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.1);
+      color: #F59E0B;
+      border: 1px solid rgba(245, 158, 11, 0.25);
     }
 
     .badge-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: #F87171;
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
     .badge-info {
-      background: rgba(59, 130, 246, 0.15);
-      color: #60A5FA;
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: rgba(6, 182, 212, 0.1);
+      color: #06B6D4;
+      border: 1px solid rgba(6, 182, 212, 0.25);
     }
 
     .stat-footer {
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .stat-subtitle {
-      font-size: 12px;
-      color: var(--tl-text-secondary);
-      line-height: 1.4;
+      font-size: 11px;
+      color: var(--tl-text-muted);
+      line-height: 1.3;
     }
   `],
 })

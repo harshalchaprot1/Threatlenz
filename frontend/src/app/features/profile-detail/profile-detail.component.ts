@@ -241,54 +241,165 @@ import {
 
                   <!-- Component Factor Weights Table -->
                   <div class="factors-section">
-                    <h3 class="section-heading">Multi-Factor TLRS Component Breakdown</h3>
+                    <div class="factors-header">
+                      <h3 class="section-heading">Multi-Factor TLRS Component Evidence Breakdown</h3>
+                      <span class="evidence-legend">
+                        Coverage: <strong>{{ (risk.evidence_coverage * 100).toFixed(0) }}%</strong> (Severity 40% + Frequency 25% + Recurrence 20%) | Target Impact 15% Withheld
+                      </span>
+                    </div>
+
+                    <!-- Component Visual Evidence Contribution Bars -->
+                    <div class="evidence-bars-grid">
+                      <!-- Severity -->
+                      <div class="evidence-bar-card">
+                        <div class="bar-card-header">
+                          <span class="factor-title">
+                            <span class="material-symbols-outlined factor-icon sev-icon">report_problem</span>
+                            Severity Contribution (40%)
+                          </span>
+                          <span class="factor-val font-mono">{{ (risk.severity_score * risk.weight_severity).toFixed(2) }} pts</span>
+                        </div>
+                        <div class="bar-track">
+                          <div class="bar-fill sev-fill" [style.width.%]="risk.severity_score"></div>
+                        </div>
+                        <div class="bar-card-footer">
+                          <span class="factor-sub">Prior Score: {{ risk.severity_score }} / 100</span>
+                          <span class="factor-source">Class Prior Impact</span>
+                        </div>
+                      </div>
+
+                      <!-- Frequency -->
+                      <div class="evidence-bar-card">
+                        <div class="bar-card-header">
+                          <span class="factor-title">
+                            <span class="material-symbols-outlined factor-icon freq-icon">speed</span>
+                            Frequency Contribution (25%)
+                          </span>
+                          <span class="factor-val font-mono">{{ (risk.frequency_score * risk.weight_frequency).toFixed(2) }} pts</span>
+                        </div>
+                        <div class="bar-track">
+                          <div class="bar-fill freq-fill" [style.width.%]="risk.frequency_score"></div>
+                        </div>
+                        <div class="bar-card-footer">
+                          <span class="factor-sub">Score: {{ risk.frequency_score.toFixed(1) }} / 100</span>
+                          <span class="factor-source">Log Netflow Count</span>
+                        </div>
+                      </div>
+
+                      <!-- Recurrence -->
+                      <div class="evidence-bar-card">
+                        <div class="bar-card-header">
+                          <span class="factor-title">
+                            <span class="material-symbols-outlined factor-icon rec-icon">update</span>
+                            Recurrence Contribution (20%)
+                          </span>
+                          <span class="factor-val font-mono">{{ (risk.recurrence_score * risk.weight_recurrence).toFixed(2) }} pts</span>
+                        </div>
+                        <div class="bar-track">
+                          <div class="bar-fill rec-fill" [style.width.%]="risk.recurrence_score"></div>
+                        </div>
+                        <div class="bar-card-footer">
+                          <span class="factor-sub">Score: {{ risk.recurrence_score.toFixed(1) }} / 100</span>
+                          <span class="factor-source">Observation Units</span>
+                        </div>
+                      </div>
+
+                      <!-- Target Impact (Unavailable / Insufficient Evidence) -->
+                      <div class="evidence-bar-card unavailable-card">
+                        <div class="bar-card-header">
+                          <span class="factor-title text-amber">
+                            <span class="material-symbols-outlined factor-icon amber-icon">warning_amber</span>
+                            Target Impact (15%)
+                          </span>
+                          <span class="factor-status-badge">UNAVAILABLE (15%)</span>
+                        </div>
+                        <div class="bar-track unavailable-track">
+                          <div class="bar-fill unavailable-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="bar-card-footer">
+                          <span class="factor-sub text-amber">Insufficient Evidence (0 / 15 pts)</span>
+                          <span class="factor-source">Missing Asset Criticality</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div class="table-responsive">
                       <table class="factors-table">
                         <thead>
                           <tr>
                             <th>Scoring Component</th>
-                            <th>Weight</th>
+                            <th>Model Weight</th>
                             <th>Observed Score [0-100]</th>
                             <th>Weighted Contribution</th>
-                            <th>Telemetry Source</th>
+                            <th>Evidence Status &amp; Telemetry Source</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                            <td class="factor-name">Severity ($S_{{ '{' }}sev{{ '}' }}$)</td>
+                            <td class="factor-name">
+                              <span class="component-bullet sev-bullet"></span>
+                              Severity ($S_{{ '{' }}sev{{ '}' }}$)
+                            </td>
                             <td class="font-mono">40% (0.40)</td>
                             <td class="font-mono">{{ risk.severity_score }}</td>
-                            <td class="font-mono">{{ (risk.severity_score * risk.weight_severity).toFixed(2) }}</td>
-                            <td>Class Prior Threat Impact</td>
+                            <td class="font-mono">{{ (risk.severity_score * risk.weight_severity).toFixed(2) }} / 40.00</td>
+                            <td>
+                              <span class="status-pill-sub observed-pill">OBSERVED</span>
+                              Class Prior Threat Impact
+                            </td>
                           </tr>
                           <tr>
-                            <td class="factor-name">Frequency ($S_{{ '{' }}freq{{ '}' }}$)</td>
+                            <td class="factor-name">
+                              <span class="component-bullet freq-bullet"></span>
+                              Frequency ($S_{{ '{' }}freq{{ '}' }}$)
+                            </td>
                             <td class="font-mono">25% (0.25)</td>
                             <td class="font-mono">{{ risk.frequency_score.toFixed(2) }}</td>
-                            <td class="font-mono">{{ (risk.frequency_score * risk.weight_frequency).toFixed(2) }}</td>
-                            <td>Logarithmic Netflow Count</td>
+                            <td class="font-mono">{{ (risk.frequency_score * risk.weight_frequency).toFixed(2) }} / 25.00</td>
+                            <td>
+                              <span class="status-pill-sub observed-pill">OBSERVED</span>
+                              Logarithmic Netflow Count
+                            </td>
                           </tr>
                           <tr>
-                            <td class="factor-name">Recurrence ($S_{{ '{' }}rec{{ '}' }}$)</td>
+                            <td class="factor-name">
+                              <span class="component-bullet rec-bullet"></span>
+                              Recurrence ($S_{{ '{' }}rec{{ '}' }}$)
+                            </td>
                             <td class="font-mono">20% (0.20)</td>
                             <td class="font-mono">{{ risk.recurrence_score.toFixed(2) }}</td>
-                            <td class="font-mono">{{ (risk.recurrence_score * risk.weight_recurrence).toFixed(2) }}</td>
-                            <td>Active Observation Units</td>
+                            <td class="font-mono">{{ (risk.recurrence_score * risk.weight_recurrence).toFixed(2) }} / 20.00</td>
+                            <td>
+                              <span class="status-pill-sub observed-pill">OBSERVED</span>
+                              Active Observation Units
+                            </td>
                           </tr>
                           <tr class="missing-row">
                             <td class="factor-name">
+                              <span class="component-bullet missing-bullet"></span>
                               Target Impact ($S_{{ '{' }}target{{ '}' }}$)
-                              <span class="missing-pill">MISSING TELEMETRY</span>
                             </td>
                             <td class="font-mono">15% (0.15)</td>
                             <td class="font-mono text-muted">
-                              {{ risk.target_impact_score !== null ? risk.target_impact_score : 'None' }}
+                              Unavailable
                             </td>
-                            <td class="font-mono text-muted">0.00</td>
-                            <td>Host / Asset Criticality (Absent in Netflow)</td>
+                            <td class="font-mono text-muted">Withheld (0.00 / 15.00)</td>
+                            <td>
+                              <span class="missing-pill">UNAVAILABLE / INSUFFICIENT EVIDENCE (15%)</span>
+                              <span class="missing-desc">Destination asset criticality evidence is missing in flow records. Operational TLRS withheld.</span>
+                            </td>
                           </tr>
                         </tbody>
                       </table>
+                    </div>
+
+                    <!-- Explicit Evidence Safeguard Disclosure Notice -->
+                    <div class="evidence-governance-notice">
+                      <span class="material-symbols-outlined gov-flag-icon">verified_user</span>
+                      <div class="gov-flag-content">
+                        <strong>Evidence Safeguard Enforcement:</strong>
+                        Destination host asset criticality telemetry is missing from captured Netflow data. ThreatLenz strictly withholds calculation of any operational overall TLRS score or operational risk band until CMDB or asset-criticality feeds provide the requisite 15% target impact evidence. The displayed partial score ({{ risk.tlrs_partial_diagnostic.toFixed(2) }}) and heuristic ({{ risk.tlrs_normalized_rounded }}) are diagnostic metrics only and must never be interpreted as operational risk scores.
+                      </div>
                     </div>
                   </div>
                 }
@@ -304,6 +415,22 @@ import {
 
               <div class="tab-pane">
                 @if (mitre) {
+                  <!-- Attribution Safeguard Notice -->
+                  <div class="mitre-safeguard-banner" [ngClass]="'banner-' + mitre.mapping_status">
+                    <div class="banner-icon-box">
+                      <span class="material-symbols-outlined">{{ getMitreStatusIcon(mitre.mapping_status) }}</span>
+                    </div>
+                    <div class="banner-body">
+                      <div class="banner-title-line">
+                        <span class="banner-title">{{ getMitreStatusTitle(mitre.mapping_status) }}</span>
+                        <span class="mitre-pill" [ngClass]="'pill-' + mitre.mapping_status">
+                          {{ getMitreStatusLabel(mitre.mapping_status) }}
+                        </span>
+                      </div>
+                      <p class="banner-desc">{{ getMitreStatusDescription(mitre.mapping_status) }}</p>
+                    </div>
+                  </div>
+
                   <div class="mitre-card">
                     <div class="mitre-header">
                       <div class="mitre-technique">
@@ -320,15 +447,29 @@ import {
                         } @else {
                           <span class="technique-none font-mono">None</span>
                         }
-                        <span class="technique-name">{{ mitre.technique_name || 'No Technique Mapped' }}</span>
+                        <div class="technique-meta">
+                          <span class="technique-name">{{ mitre.technique_name || 'No Technique Mapped' }}</span>
+                          <span class="technique-subtext">
+                            @if (mitre.mapping_status === 'candidate') {
+                              Behavioral Candidate Pattern (Unverified Attribution)
+                            } @else if (mitre.mapping_status === 'unverified') {
+                              Unverified Traffic Heuristic
+                            } @else if (mitre.mapping_status === 'verified') {
+                              Corroborated Telemetry Mapping
+                            } @else {
+                              Benign Baseline
+                            }
+                          </span>
+                        </div>
                       </div>
 
                       <div class="mitre-status-box">
-                        <span class="status-tag" [ngClass]="'status-' + mitre.mapping_status">
-                          {{ mitre.mapping_status | uppercase }}
-                        </span>
+                        <div class="status-indicator-badge" [ngClass]="'indicator-' + mitre.mapping_status">
+                          <span class="indicator-dot"></span>
+                          <span>{{ getMitreStatusLabel(mitre.mapping_status) }}</span>
+                        </div>
                         <span class="unconfirmed-pill" [class.confirmed-pill]="mitre.is_confirmed">
-                          {{ mitre.is_confirmed ? 'CONFIRMED' : 'UNCONFIRMED EVIDENCE' }}
+                          {{ mitre.is_confirmed ? 'VERIFIED ATTRIBUTION' : 'UNCONFIRMED EVIDENCE' }}
                         </span>
                       </div>
                     </div>
@@ -346,9 +487,12 @@ import {
 
                       @if (mitre.missing_telemetry && mitre.missing_telemetry.length > 0) {
                         <div class="telemetry-block">
-                          <span class="block-title">Required Telemetry for Verification</span>
+                          <div class="telemetry-header">
+                            <span class="material-symbols-outlined info-icon">info</span>
+                            <span class="block-title">Required Telemetry for Attribution Verification</span>
+                          </div>
                           <p class="telemetry-intro">
-                            Netflow captures flow statistics only. The following telemetry is required before this technique can be marked verified:
+                            Flow statistics provide behavioral correlation only, not verified threat attribution. The following host or payload telemetry is missing and required before this technique can be marked verified:
                           </p>
                           <ul class="telemetry-list">
                             @for (item of mitre.missing_telemetry; track item) {
@@ -608,7 +752,358 @@ import {
       font-size: 14px;
       font-weight: 700;
       color: var(--tl-text-primary);
-      margin: 0 0 12px 0;
+      margin: 0;
+    }
+
+    .factors-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .evidence-legend {
+      font-size: 12px;
+      color: var(--tl-text-secondary);
+      strong {
+        color: var(--tl-cyan);
+      }
+    }
+
+    .evidence-bars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .evidence-bar-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--tl-border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      &.unavailable-card {
+        background: rgba(245, 158, 11, 0.04);
+        border: 1px dashed rgba(245, 158, 11, 0.4);
+      }
+    }
+
+    .bar-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .factor-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tl-text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .factor-icon {
+      font-size: 16px;
+      &.sev-icon { color: #EF4444; }
+      &.freq-icon { color: #3B82F6; }
+      &.rec-icon { color: #10B981; }
+      &.amber-icon { color: #F59E0B; }
+    }
+
+    .factor-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tl-text-primary);
+    }
+
+    .factor-status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #FBBF24;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 4px;
+      overflow: hidden;
+
+      &.unavailable-track {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px dashed rgba(245, 158, 11, 0.3);
+      }
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+
+      &.sev-fill { background: linear-gradient(90deg, #EF4444, #F87171); }
+      &.freq-fill { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+      &.rec-fill { background: linear-gradient(90deg, #10B981, #34D399); }
+    }
+
+    .bar-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--tl-text-muted);
+    }
+
+    .factor-source {
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .text-amber {
+      color: #FBBF24 !important;
+    }
+
+    .component-bullet {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+
+      &.sev-bullet { background: #EF4444; }
+      &.freq-bullet { background: #3B82F6; }
+      &.rec-bullet { background: #10B981; }
+      &.missing-bullet { background: #F59E0B; }
+    }
+
+    .status-pill-sub {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-right: 6px;
+      display: inline-block;
+
+      &.observed-pill {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+    }
+
+    .missing-desc {
+      display: block;
+      font-size: 11px;
+      color: #9CA3AF;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .evidence-governance-notice {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 6px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+
+      .gov-flag-icon {
+        font-size: 22px;
+        color: #F59E0B;
+        margin-top: 2px;
+      }
+
+      .gov-flag-content {
+        font-size: 12px;
+        color: #D1D5DB;
+        line-height: 1.5;
+
+        strong {
+          color: #FBBF24;
+        }
+      }
+    }
+
+    /* MITRE Attribution Safeguard Styles */
+    .mitre-safeguard-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+
+      &.banner-candidate {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        .banner-icon-box { color: #60A5FA; }
+      }
+
+      &.banner-unverified {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        .banner-icon-box { color: #FBBF24; }
+      }
+
+      &.banner-verified {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        .banner-icon-box { color: #34D399; }
+      }
+
+      &.banner-not_applicable {
+        background: rgba(107, 114, 128, 0.08);
+        border: 1px solid rgba(107, 114, 128, 0.3);
+        .banner-icon-box { color: #9CA3AF; }
+      }
+    }
+
+    .banner-icon-box {
+      font-size: 24px;
+      margin-top: 2px;
+    }
+
+    .banner-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .banner-title-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tl-text-primary);
+    }
+
+    .mitre-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.pill-candidate {
+        background: rgba(59, 130, 246, 0.2);
+        color: #93C5FD;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+      }
+
+      &.pill-unverified {
+        background: rgba(245, 158, 11, 0.2);
+        color: #FDE68A;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+      }
+
+      &.pill-verified {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6EE7B7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+      }
+
+      &.pill-not_applicable {
+        background: rgba(107, 114, 128, 0.2);
+        color: #D1D5DB;
+        border: 1px solid rgba(107, 114, 128, 0.4);
+      }
+    }
+
+    .banner-desc {
+      font-size: 12px;
+      color: #9CA3AF;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .technique-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .technique-subtext {
+      font-size: 11px;
+      color: var(--tl-text-muted);
+    }
+
+    .status-indicator-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.indicator-candidate {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60A5FA;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+        .indicator-dot { background: #3B82F6; box-shadow: 0 0 6px #3B82F6; }
+      }
+
+      &.indicator-unverified {
+        background: rgba(245, 158, 11, 0.15);
+        color: #FBBF24;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        .indicator-dot { background: #F59E0B; box-shadow: 0 0 6px #F59E0B; }
+      }
+
+      &.indicator-verified {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        .indicator-dot { background: #10B981; box-shadow: 0 0 6px #10B981; }
+      }
+
+      &.indicator-not_applicable {
+        background: rgba(107, 114, 128, 0.15);
+        color: #9CA3AF;
+        border: 1px solid rgba(107, 114, 128, 0.4);
+        .indicator-dot { background: #6B7280; }
+      }
+    }
+
+    .indicator-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .telemetry-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+
+      .info-icon {
+        font-size: 16px;
+        color: var(--tl-cyan);
+      }
     }
 
     .factors-table {
@@ -938,5 +1433,65 @@ export class ProfileDetailComponent implements OnInit {
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  getMitreStatusLabel(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'candidate':
+        return 'Candidate Mapping';
+      case 'unverified':
+        return 'Unverified Mapping';
+      case 'verified':
+        return 'Verified Attribution';
+      case 'not_applicable':
+        return 'Not Applicable (Benign)';
+      default:
+        return status ? status.toUpperCase() : 'Unknown';
+    }
+  }
+
+  getMitreStatusIcon(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'candidate':
+        return 'explore';
+      case 'unverified':
+        return 'help_outline';
+      case 'verified':
+        return 'verified';
+      case 'not_applicable':
+        return 'remove_circle_outline';
+      default:
+        return 'info';
+    }
+  }
+
+  getMitreStatusTitle(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'candidate':
+        return 'Behavioral Pattern Candidate (Attribution Unverified)';
+      case 'unverified':
+        return 'Preliminary Correlation (Insufficient Telemetry)';
+      case 'verified':
+        return 'Empirically Verified Technique Attribution';
+      case 'not_applicable':
+        return 'Benign Baseline Traffic (No Adversary Technique)';
+      default:
+        return 'MITRE ATT&CK Mapping Status';
+    }
+  }
+
+  getMitreStatusDescription(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'candidate':
+        return 'This profile matches network signatures associated with the MITRE technique, but lacks host-level artifacts required for verified attribution. ThreatLenz strictly designates this as a Candidate mapping to avoid premature or speculative attribution.';
+      case 'unverified':
+        return 'Observed network flow telemetry demonstrates weak or incomplete alignment with known adversary behavior. Corroborating endpoint or application telemetry is absent.';
+      case 'verified':
+        return 'Adversary technique attribution has been corroborated by multiple independent host and network telemetry sources.';
+      case 'not_applicable':
+        return 'This network profile represents standard baseline traffic. Adversary tactical mappings are not applicable.';
+      default:
+        return 'Mapping telemetry status evaluated according to ThreatLenz governance rules.';
+    }
   }
 }

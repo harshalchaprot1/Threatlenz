@@ -36,5 +36,6 @@ export class AppComponent {
     { label: 'Threat Explorer', route: '/profiles', icon: 'security' },
     { label: 'Model Governance', route: '/governance', icon: 'verified_user' },
     { label: 'Pipeline Runs', route: '/runs', icon: 'history' },
+    { label: 'Reports', route: '/reports', icon: 'analytics' },
   ];
 }

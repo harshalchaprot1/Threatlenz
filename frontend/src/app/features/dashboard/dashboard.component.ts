@@ -6,11 +6,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin } from 'rxjs';
 import { ThreatLenzApiService } from '../../core/services/api.service';
-import { HealthResponse, PipelineRunSummary, ThreatProfileSummary } from '../../core/models';
 import {
+  HealthResponse,
+  PipelineRunSummary,
+  ThreatProfileSummary,
+  TemporalAnalyticsResponse,
+  DestinationPortAnalyticsResponse,
+} from '../../core/models';
+import {
+  CapturedDayBarComponent,
   CategoryBarChartComponent,
   CompositionDonutChartComponent,
   EvidenceBannerComponent,
+  PortConcentrationCardComponent,
   RecurrenceHeatmapComponent,
   ReliabilityBadgeComponent,
   StatCardComponent,
@@ -33,6 +41,8 @@ import {
     CategoryBarChartComponent,
     CompositionDonutChartComponent,
     RecurrenceHeatmapComponent,
+    CapturedDayBarComponent,
+    PortConcentrationCardComponent,
   ],
   template: `
     <div class="dashboard-container">
@@ -138,104 +148,22 @@ import {
         <!-- Recurrence & Temporal Distribution Heatmap -->
         <app-recurrence-heatmap [profiles]="profiles"></app-recurrence-heatmap>
 
-        <!-- Active Pipeline Run Card -->
-        @if (latestRun && false) {
-          <div class="panel-card run-card">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <span class="material-symbols-outlined panel-icon">history_edu</span>
-                <span class="panel-title">Active Intelligence Pipeline Run</span>
-              </div>
-              <span class="run-id-pill">{{ latestRun.run_id }}</span>
-            </div>
-
-            <div class="run-details-grid">
-              <div class="run-field">
-                <span class="field-label">Report Name</span>
-                <span class="field-val">{{ latestRun.report_name }}</span>
-              </div>
-              <div class="run-field">
-                <span class="field-label">Pipeline Version</span>
-                <span class="field-val">v{{ latestRun.pipeline_version }}</span>
-              </div>
-              <div class="run-field">
-                <span class="field-label">Execution Duration</span>
-                <span class="field-val">{{ latestRun.execution_duration_seconds }}s</span>
-              </div>
-              <div class="run-field">
-                <span class="field-label">Source Manifest SHA-256</span>
-                <span class="field-val font-mono">{{ latestRun.source_manifest_hash }}</span>
-              </div>
-              <div class="run-field">
-                <span class="field-label">Model Status</span>
-                <span class="field-val model-status-badge">{{ latestRun.model_status }}</span>
-              </div>
-              <div class="run-field">
-                <span class="field-label">Execution Timestamp</span>
-                <span class="field-val">{{ latestRun.run_timestamp | date:'medium' }}</span>
-              </div>
-            </div>
+        <!-- Deep Campaign Analytics Grid: Captured Days & Destination Port Concentration -->
+        <div class="analytics-grid">
+          <div class="analytics-col-day">
+            <app-captured-day-bar
+              [eventDateTotals]="temporalData?.event_date_totals"
+              [loading]="loading"
+            ></app-captured-day-bar>
           </div>
-        }
-
-        <!-- Top Threat Profiles Summary Table -->
-        <div class="panel-card" *ngIf = false>
-          <div class="panel-header">
-            <div class="panel-title-group">
-              <span class="material-symbols-outlined panel-icon">grid_view</span>
-              <span class="panel-title">Categorized Threat Profiles ({{ profiles.length }})</span>
-            </div>
-            <a mat-button color="accent" routerLink="/profiles" class="view-all-link">
-              <span>View in Threat Explorer</span>
-              <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
-            </a>
-          </div>
-
-          <div class="table-responsive">
-            <table class="preview-table">
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Attack Status</th>
-                  <th>Flow Count</th>
-                  <th>Packets</th>
-                  <th>Recurrence</th>
-                  <th>Model Reliability</th>
-                  <th style="text-align: right;">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (profile of profiles; track profile.snapshot_id) {
-                  <tr>
-                    <td class="category-cell">
-                      <span class="cat-label">{{ profile.canonical_label }}</span>
-                      <span class="cat-raw">{{ profile.raw_label }}</span>
-                    </td>
-                    <td>
-                      <app-status-badge [status]="profile.attack_status"></app-status-badge>
-                    </td>
-                    <td class="font-mono">{{ profile.flow_count | number }}</td>
-                    <td class="font-mono text-muted">{{ profile.total_packets | number }}</td>
-                    <td class="font-mono">{{ (profile.recurrence_ratio * 100).toFixed(1) }}%</td>
-                    <td>
-                      <app-reliability-badge [reliability]="profile.model_reliability"></app-reliability-badge>
-                    </td>
-                    <td style="text-align: right;">
-                      <a
-                        mat-stroked-button
-                        color="primary"
-                        [routerLink]="['/profiles', profile.snapshot_id]"
-                        class="inspect-btn"
-                      >
-                        Inspect
-                      </a>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+          <div class="analytics-col-port">
+            <app-port-concentration-card
+              [portData]="portData"
+              [loading]="loading"
+            ></app-port-concentration-card>
           </div>
         </div>
+
       }
     </div>
   `,
@@ -243,7 +171,7 @@ import {
     .dashboard-container {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 16px;
     }
 
     .state-container {
@@ -342,22 +270,45 @@ import {
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+
+      @media (max-width: 1100px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
     }
 
     .visualizations-grid {
       display: grid;
-      grid-template-columns: 1fr 1.35fr;
-      gap: 20px;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
       align-items: stretch;
 
-      @media (max-width: 960px) {
+      @media (max-width: 1100px) {
         grid-template-columns: 1fr;
       }
     }
 
     .viz-half {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+
+      @media (max-width: 1000px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analytics-col-day, .analytics-col-port {
       display: flex;
       flex-direction: column;
     }
@@ -520,6 +471,8 @@ export class DashboardComponent implements OnInit {
   health: HealthResponse | null = null;
   latestRun: PipelineRunSummary | null = null;
   profiles: ThreatProfileSummary[] = [];
+  temporalData: TemporalAnalyticsResponse | null = null;
+  portData: DestinationPortAnalyticsResponse | null = null;
 
   constructor(private readonly apiService: ThreatLenzApiService) { }
 
@@ -535,11 +488,15 @@ export class DashboardComponent implements OnInit {
       health: this.apiService.getHealth(),
       runs: this.apiService.listRuns(1, 0),
       profiles: this.apiService.listProfiles({ limit: 100 }),
+      temporal: this.apiService.getTemporalAnalytics(),
+      ports: this.apiService.getPortAnalytics(),
     }).subscribe({
-      next: ({ health, runs, profiles }) => {
+      next: ({ health, runs, profiles, temporal, ports }) => {
         this.health = health;
         this.latestRun = runs.items.length > 0 ? runs.items[0] : null;
         this.profiles = profiles.items;
+        this.temporalData = temporal;
+        this.portData = ports;
         this.loading = false;
       },
       error: (err) => {

@@ -389,6 +389,15 @@ export class ExplorerComponent implements OnInit {
 
   displayedProfiles: ThreatProfileSummary[] = [];
   rawProfiles: ThreatProfileSummary[] = [];
+
+  // Alias for backward-compatibility with tests & consumers
+  get profiles(): ThreatProfileSummary[] {
+    return this.displayedProfiles;
+  }
+  set profiles(val: ThreatProfileSummary[]) {
+    this.displayedProfiles = val;
+  }
+
   totalCount: number = 0;
   pageSize: number = 20;
   pageIndex: number = 0;

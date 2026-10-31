@@ -5,8 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { forkJoin } from 'rxjs';
 import { ThreatLenzApiService } from '../../core/services/api.service';
-import { PipelineRunDetail, PipelineRunSummary, ThreatProfileSummary } from '../../core/models';
-import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/components';
+import { PipelineRunDetail, PipelineRunSummary, ThreatProfileSummary, ModelDiagnosticsResponse } from '../../core/models';
+import {
+  ReliabilityBadgeComponent,
+  StatusBadgeComponent,
+  FeatureImportanceChartComponent,
+  ConfusionMatrixGridComponent,
+} from '../../shared/components';
 
 @Component({
   selector: 'app-governance',
@@ -18,6 +23,8 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
     MatProgressSpinnerModule,
     StatusBadgeComponent,
     ReliabilityBadgeComponent,
+    FeatureImportanceChartComponent,
+    ConfusionMatrixGridComponent,
   ],
   template: `
     <div class="gov-container">
@@ -121,6 +128,18 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
             }
           </div>
         }
+
+        <!-- Academic Evaluation Diagnostics: Feature Importance & Confusion Matrix -->
+        <app-feature-importance-chart
+          [featureImportances]="diagnosticsData?.top_feature_importances"
+          [loading]="loading"
+        ></app-feature-importance-chart>
+
+        <app-confusion-matrix-grid
+          [validationMetrics]="diagnosticsData?.validation_metrics"
+          [testMetrics]="diagnosticsData?.test_metrics"
+          [loading]="loading"
+        ></app-confusion-matrix-grid>
 
         <!-- Multi-Metric Validation Gating Matrix -->
         <div class="panel-card">
@@ -524,6 +543,7 @@ export class GovernanceComponent implements OnInit {
 
   activeRun: PipelineRunDetail | null = null;
   profiles: ThreatProfileSummary[] = [];
+  diagnosticsData: ModelDiagnosticsResponse | null = null;
 
   constructor(private readonly apiService: ThreatLenzApiService) {}
 
@@ -537,25 +557,34 @@ export class GovernanceComponent implements OnInit {
 
     this.apiService.listRuns(1, 0).subscribe({
       next: (runs) => {
-        if (runs.items.length > 0) {
-          const runId = runs.items[0].run_id;
-          forkJoin({
-            runDetail: this.apiService.getRunDetail(runId),
-            profiles: this.apiService.listProfiles({ limit: 100 }),
-          }).subscribe({
-            next: ({ runDetail, profiles }) => {
-              this.activeRun = runDetail;
-              this.profiles = profiles.items;
-              this.loading = false;
-            },
-            error: (err) => {
-              this.errorMessage = err.message || 'Failed to load governance telemetry.';
-              this.loading = false;
-            },
-          });
-        } else {
-          this.loading = false;
+        const runId = runs.items.length > 0 ? runs.items[0].run_id : null;
+        const requests: {
+          runDetail?: any;
+          profiles: any;
+          diagnostics: any;
+        } = {
+          profiles: this.apiService.listProfiles({ limit: 100 }),
+          diagnostics: this.apiService.getModelDiagnostics(),
+        };
+
+        if (runId) {
+          requests.runDetail = this.apiService.getRunDetail(runId);
         }
+
+        forkJoin(requests).subscribe({
+          next: (res: any) => {
+            if (res.runDetail) {
+              this.activeRun = res.runDetail;
+            }
+            this.profiles = res.profiles.items || [];
+            this.diagnosticsData = res.diagnostics;
+            this.loading = false;
+          },
+          error: (err) => {
+            this.errorMessage = err.message || 'Failed to load governance telemetry.';
+            this.loading = false;
+          },
+        });
       },
       error: (err) => {
         this.errorMessage = err.message || 'Failed to query pipeline runs.';
