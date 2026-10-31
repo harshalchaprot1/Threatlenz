@@ -16,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from backend.app.routers import health, profiles, runs
+from backend.app.routers import analytics, health, profiles, runs
 from src.config import settings
 from src.utils import get_logger
 
@@ -71,6 +71,7 @@ def create_app() -> FastAPI:
     application.include_router(health.router)
     application.include_router(runs.router)
     application.include_router(profiles.router)
+    application.include_router(analytics.router)
 
     # 4. Root Service Metadata Endpoint
     @application.get(
