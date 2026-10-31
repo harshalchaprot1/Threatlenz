@@ -8,7 +8,10 @@ import { forkJoin } from 'rxjs';
 import { ThreatLenzApiService } from '../../core/services/api.service';
 import { HealthResponse, PipelineRunSummary, ThreatProfileSummary } from '../../core/models';
 import {
+  CategoryBarChartComponent,
+  CompositionDonutChartComponent,
   EvidenceBannerComponent,
+  RecurrenceHeatmapComponent,
   ReliabilityBadgeComponent,
   StatCardComponent,
   StatusBadgeComponent,
@@ -27,6 +30,9 @@ import {
     StatusBadgeComponent,
     ReliabilityBadgeComponent,
     EvidenceBannerComponent,
+    CategoryBarChartComponent,
+    CompositionDonutChartComponent,
+    RecurrenceHeatmapComponent,
   ],
   template: `
     <div class="dashboard-container">
@@ -118,6 +124,19 @@ import {
             badgeType="warning"
           ></app-stat-card>
         </div>
+
+        <!-- Visualizations Grid -->
+        <div class="visualizations-grid">
+          <div class="viz-half">
+            <app-composition-donut-chart [profiles]="profiles"></app-composition-donut-chart>
+          </div>
+          <div class="viz-half">
+            <app-category-bar-chart [profiles]="profiles"></app-category-bar-chart>
+          </div>
+        </div>
+
+        <!-- Recurrence & Temporal Distribution Heatmap -->
+        <app-recurrence-heatmap [profiles]="profiles"></app-recurrence-heatmap>
 
         <!-- Active Pipeline Run Card -->
         @if (latestRun) {
@@ -325,6 +344,22 @@ import {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 16px;
+    }
+
+    .visualizations-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 20px;
+      align-items: stretch;
+
+      @media (max-width: 960px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .viz-half {
+      display: flex;
+      flex-direction: column;
     }
 
     .panel-card {
