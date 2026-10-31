@@ -9,6 +9,11 @@
 
 ## 1. Verified Deliverables & Environment State
 
+- **Frontend Data Visualization & Excellence (NEW):**
+  - **Composition Donut Chart (`app-composition-donut-chart`):** Native SVG donut displaying exact proportion between verified Benign baseline traffic and adversarial attack classes with real-time percentage breakdowns, correct denominators, and zero fabricated slices.
+  - **Category Volume Comparison (`app-category-bar-chart`):** Interactive horizontal bar chart visualizing relative flow volumes across all 14 evaluated threat categories. Includes interactive **Log Scale vs. Linear Scale** toggle to allow low-volume attacks (e.g., Infiltration, Brute Force) to be visible alongside 5M+ benign records. Features click-through deep links directly to individual Threat Profile inspection.
+  - **Campaign Recurrence Heatmap (`app-recurrence-heatmap`):** Temporal persistence matrix mapping active observation units across the $H=8$ campaign days for each category, directly connecting visual persistence to the underlying TLRS formula ($R = d / H$).
+  - **Production Build:** Bundle compiled cleanly via Angular CLI with zero runtime dependencies on bloated 3rd-party chart packages (`Initial total: 990.18 kB`).
 - **Container Services:**
   - `threatlenz-db` (PostgreSQL 16 Alpine): Healthy on internal bridge network `threatlenz-net`. Schema migrated via `database/init/01_schema.sql`.
   - `threatlenz-api` (FastAPI / Python 3.11): Healthy on host port 8000 and internal port 8000. Verified PostgreSQL connection pool.
