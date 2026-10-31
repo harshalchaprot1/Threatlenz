@@ -80,6 +80,30 @@ export interface FeatureImportanceItem {
   importance: number;
 }
 
+export interface SplitClassMetrics {
+  support: number;
+  predicted_support: number;
+  precision: number;
+  recall: number;
+  f1_score: number;
+  specificity: number;
+  fpr: number;
+  fnr: number;
+  tp: number;
+  fp: number;
+  fn: number;
+  tn: number;
+}
+
+export interface CategoryGovernanceItem {
+  class_name: string;
+  official_reliability_tier: string;
+  gating_reason: string;
+  generalization_assessment: string;
+  validation: SplitClassMetrics;
+  test: SplitClassMetrics;
+}
+
 export interface ModelDiagnosticsResponse {
   pipeline_name: string;
   model_artifact: string;
@@ -89,6 +113,7 @@ export interface ModelDiagnosticsResponse {
   top_feature_importances: FeatureImportanceItem[];
   validation_metrics: SplitMetricsSummary;
   test_metrics: SplitMetricsSummary;
+  category_evaluations: CategoryGovernanceItem[];
 }
 
 // 4. Feature Redundancy Models

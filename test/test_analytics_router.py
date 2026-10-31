@@ -67,6 +67,36 @@ def test_model_diagnostics_endpoint(client: TestClient):
     assert len(test_cm["raw_matrix"][0]) == 14
     assert len(test_cm["normalized_matrix"]) == 14
 
+    # Sample counts verification (User Requirement: 42,127 validation vs 45,630 test)
+    assert data["validation_metrics"]["total_evaluated_samples"] == 42127
+    assert data["test_metrics"]["total_evaluated_samples"] == 45630
+
+    # Category evaluations verification (all 14 classes derived from raw matrix)
+    category_evals = data.get("category_evaluations", [])
+    assert len(category_evals) == 14
+    class_names = [c["class_name"] for c in category_evals]
+    assert "Benign" in class_names
+    assert "Bot" in class_names
+    assert "DDoS-LOIC-UDP" in class_names
+    assert "DoS-Slowloris" in class_names
+
+    # Check official validation reliability gating
+    bot_item = next(c for c in category_evals if c["class_name"] == "Bot")
+    assert bot_item["official_reliability_tier"] == "HIGH_RELIABILITY"
+    assert bot_item["validation"]["support"] == 2532
+    assert bot_item["test"]["support"] == 1670
+
+    loic_item = next(c for c in category_evals if c["class_name"] == "DDoS-LOIC-UDP")
+    # Low support (< 30) asserts UNRELIABLE
+    assert loic_item["official_reliability_tier"] == "UNRELIABLE"
+    assert loic_item["validation"]["support"] == 14
+    assert loic_item["test"]["support"] == 15
+
+    slowloris_item = next(c for c in category_evals if c["class_name"] == "DoS-Slowloris")
+    assert slowloris_item["official_reliability_tier"] == "EVALUABLE"
+    assert slowloris_item["validation"]["support"] == 83
+    assert slowloris_item["test"]["support"] == 90
+
 
 def test_feature_redundancy_endpoint(client: TestClient):
     """Verify GET /api/v1/analytics/feature-redundancy returns all 9 evaluated pairs."""

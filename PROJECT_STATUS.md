@@ -1,6 +1,6 @@
 # ThreatLenz Project Status & Phase Checkpoint
 
-**Current Phase:** Frontend Excellence & Data Visualization Layer  
+**Current Phase:** Phase 3: Random Forest Evaluation & Model Governance  
 **Phase Status:** COMPLETED & VERIFIED  
 **Date:** 2026-11-01  
 **Branch:** `main`
@@ -9,7 +9,28 @@
 
 ## 1. Verified Deliverables & Environment State
 
+- **Phase 3 Model Governance & 14-Category Evaluation Layer:**
+  - **Sample Count Discrepancy Resolved:** Verified exact sample totals directly from the raw confusion matrices and split metadata: Validation $N = 42,127$ samples, Held-out Test $N = 45,630$ samples.
+  - **Random Forest Algorithm & Terminology Alignment:** Standardized terminology to **Random Forest Evaluation** on a **leakage-excluded feature set** (63 features; zero target metadata or label indices). Eliminated artificial names such as "Clean Random Forest" or "Clean RF".
+  - **Quarantined Model Disclosure:** Explicitly separated the evaluated Random Forest from the quarantined pilot Random Forest. Formally designated status as *"Operational Inference: Disabled by Governance Policy"*.
+  - **14-Category Verified Arithmetic:** Derived TP, FP, FN, TN, Precision, Recall, F1, Specificity, FPR, FNR, Actual Support, and Predicted Support directly from the $14 \times 14$ raw confusion matrices for both validation and held-out test splits.
+  - **Strict Governance Standard §5 Gating:** Computed official reliability tiers strictly from validation performance metrics ($\text{Support}_{\text{val}} \ge 100$ and $\min(\text{P},\text{R},\text{F1}) \ge 0.75$ for `HIGH_RELIABILITY`; $\ge 30$ and $\ge 0.60$ for `EVALUABLE`; otherwise `UNRELIABLE`). Corrected `DDoS-LOIC-UDP` ($N=14 < 30$) to `UNRELIABLE`. Displayed held-out test performance as generalization comparison without assigning an unauthorized second tier.
+  - **Model Governance UI Redesign (`/governance`):**
+    - *Area A (Model Integrity & Operational State):* Dual-panel card cleanly differentiating Random Forest Evaluation (leakage-excluded benchmark) from Quarantined Pilot Model (inference disabled).
+    - *Area B (14-Category Evaluation Table):* Interactive table with Validation (Official Tier) vs. Held-out Test (Generalization) split toggle, official reliability badge, support, precision, recall, F1, specificity, generalization tag, and expandable technical drawer with exact TP/FP/FN/TN and governance gating rule.
+    - *Area C & D:* Preserved the $14 \times 14$ confusion matrix toggle (normalized vs. raw) and Top 10 feature importance chart with leak-free disclosures.
+
 - **Backend Read-Only Analytics Layer (`backend/app/routers/analytics.py`):**
+  - Enhanced `GET /api/v1/analytics/model-diagnostics` to return structured `category_evaluations` list with validation and test `SplitClassMetrics`, official reliability tier, and exact gating reasons.
+  - Updated Pydantic schemas in `backend/app/schemas_analytics.py` and TypeScript interfaces in `frontend/src/app/core/models/analytics.model.ts`.
+  - Automated test suite (`test/test_analytics_router.py`) verified with 4/4 passing tests including sample counts (42,127 vs 45,630) and category evaluation assertions.
+
+- **Phase 2 Executive Dashboard Polish (Verified):**
+  - Standardized international 3-digit comma grouping (`7,235,606` total flows, `5,064,128` benign baseline flows) via Angular `en-US` `LOCALE_ID`.
+  - Refined Operational Risk Assessment banner to restrained governance information styling with Target Impact Withheld disclosure.
+  - Fixed Destination Port Concentration Threat Category dropdown alignment and trigger wrapper heights.
+
+- **Container Services & Docker Audit:**
   - Implemented 4 high-performance read-only analytics endpoints backed by precomputed analytical artifacts (`reports/spark_analytics_report.json` and `reports/clean_per_class_rf_evaluation_report.json`):
     - `GET /api/v1/analytics/temporal`: Campaign observation date timeline (8 dates) and attack profile dates.
     - `GET /api/v1/analytics/ports`: Cross-category destination port concentrations across 14 categories and 12 distinct destination ports.

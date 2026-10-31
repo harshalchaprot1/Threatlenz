@@ -19,6 +19,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from backend.app.schemas_analytics import (
+    CategoryGovernanceItem,
     CategoryPortAnalysis,
     ConfusionMatrixPayload,
     DestinationPortAnalyticsResponse,
@@ -27,6 +28,7 @@ from backend.app.schemas_analytics import (
     FeatureRedundancyResponse,
     ModelDiagnosticsResponse,
     PortConcentrationItem,
+    SplitClassMetrics,
     SplitMetricsSummary,
     TemporalAnalyticsResponse,
     TemporalDateSummary,
@@ -149,11 +151,11 @@ def get_destination_port_analysis() -> DestinationPortAnalyticsResponse:
 @router.get(
     "/model-diagnostics",
     response_model=ModelDiagnosticsResponse,
-    summary="Clean Random Forest Evaluation & Confusion Matrices",
-    description="Returns clean pilot Random Forest feature importances, along with 14x14 validation and test confusion matrices.",
+    summary="Random Forest Evaluation & Confusion Matrices",
+    description="Returns Random Forest evaluation feature importances (leakage-excluded), 14x14 validation/test confusion matrices, and verified per-category reliability gating metrics.",
 )
 def get_model_diagnostics() -> ModelDiagnosticsResponse:
-    """Extracts clean model evaluation benchmarks and confusion matrices."""
+    """Extracts Random Forest model evaluation benchmarks, per-category metrics, and confusion matrices."""
     data = _load_report("clean_per_class_rf_evaluation_report.json")
 
     # Format top feature importances
@@ -196,19 +198,103 @@ def get_model_diagnostics() -> ModelDiagnosticsResponse:
     val_metrics = _parse_split("validation_metrics")
     test_metrics = _parse_split("test_metrics")
 
+    # Compute category-level verified metrics for both validation and held-out test splits
+    labels = val_metrics.confusion_matrix.class_labels
+    val_raw = val_metrics.confusion_matrix.raw_matrix
+    test_raw = test_metrics.confusion_matrix.raw_matrix
+    N = len(labels)
+    total_val = sum(sum(row) for row in val_raw)
+    total_test = sum(sum(row) for row in test_raw)
+
+    def _extract_category_metrics(i: int, raw: list[list[int]], total: int) -> SplitClassMetrics:
+        tp = raw[i][i]
+        fn = sum(raw[i][j] for j in range(N) if j != i)
+        fp = sum(raw[j][i] for j in range(N) if j != i)
+        tn = total - tp - fp - fn
+
+        support = tp + fn
+        predicted_support = tp + fp
+
+        prec = float(tp / predicted_support) if predicted_support > 0 else 0.0
+        rec = float(tp / support) if support > 0 else 0.0
+        f1 = float((2 * prec * rec) / (prec + rec)) if (prec + rec) > 0 else 0.0
+        spec = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
+        fpr = float(fp / (tn + fp)) if (tn + fp) > 0 else 0.0
+        fnr = float(fn / (tp + fn)) if (tp + fn) > 0 else 0.0
+
+        return SplitClassMetrics(
+            support=support,
+            predicted_support=predicted_support,
+            precision=round(prec, 4),
+            recall=round(rec, 4),
+            f1_score=round(f1, 4),
+            specificity=round(spec, 4),
+            fpr=round(fpr, 4),
+            fnr=round(fnr, 4),
+            tp=tp,
+            fp=fp,
+            fn=fn,
+            tn=tn,
+        )
+
+    def _evaluate_gating(support: int, prec: float, rec: float, f1: float) -> tuple[str, str]:
+        if support == 0:
+            return "NON_EVALUABLE", "Zero validation observations (Support = 0)"
+        min_metric = min(prec, rec, f1)
+        if support >= settings.high_reliability_min_support and min_metric >= settings.high_reliability_min_precision:
+            return "HIGH_RELIABILITY", f"Validation support >= {settings.high_reliability_min_support} and min(P,R,F1) >= {settings.high_reliability_min_precision:.2f}"
+        if support >= settings.min_validation_support and min_metric >= settings.evaluable_min_precision:
+            return "EVALUABLE", f"Validation support >= {settings.min_validation_support} and min(P,R,F1) >= {settings.evaluable_min_precision:.2f}"
+        reasons = []
+        if support < settings.min_validation_support:
+            reasons.append(f"Validation support ({support}) < {settings.min_validation_support}")
+        if min_metric < settings.evaluable_min_precision:
+            reasons.append(f"Validation metric below threshold (min={min_metric:.4f} < {settings.evaluable_min_precision:.2f})")
+        return "UNRELIABLE", "; ".join(reasons)
+
+    category_evaluations: list[CategoryGovernanceItem] = []
+    for i, c_name in enumerate(labels):
+        val_cat = _extract_category_metrics(i, val_raw, total_val)
+        test_cat = _extract_category_metrics(i, test_raw, total_test)
+
+        official_tier, gating_reason = _evaluate_gating(
+            val_cat.support, val_cat.precision, val_cat.recall, val_cat.f1_score
+        )
+
+        f1_delta = test_cat.f1_score - val_cat.f1_score
+        if abs(f1_delta) < 0.05:
+            gen_assessment = "Consistent generalization across validation and test splits"
+        elif f1_delta > 0.05:
+            gen_assessment = f"Higher test generalization (+{f1_delta*100:.1f}%)"
+        else:
+            gen_assessment = f"Generalization drop on test split ({f1_delta*100:.1f}%)"
+
+        category_evaluations.append(
+            CategoryGovernanceItem(
+                class_name=c_name,
+                official_reliability_tier=official_tier,
+                gating_reason=gating_reason,
+                generalization_assessment=gen_assessment,
+                validation=val_cat,
+                test=test_cat,
+            )
+        )
+
     return ModelDiagnosticsResponse(
-        pipeline_name=str(data.get("pipeline_name", "Clean-Per-Class-RF")),
+        pipeline_name=str(data.get("pipeline_name", "Random-Forest-Evaluation")),
         model_artifact=str(data.get("model_location", "models/clean_per_class_rf/model")),
         model_governance_status="EVALUATED_VALIDATION_BENCHMARK",
         quarantine_disclosure=(
-            "Clean Random Forest model evaluation benchmark. In accordance with ThreatLenz "
-            "governance policy, live operational inference remains opt-in and quarantined "
-            "pending formal Phase 6 production validation certification."
+            "The evaluated Random Forest uses leakage-excluded Netflow features and is an "
+            "academic evaluation benchmark only. The separate pilot Random Forest remains "
+            "quarantined due to target-label leakage. Operational inference is disabled "
+            "by governance policy."
         ),
         training_duration_seconds=float(data.get("training_duration_seconds", 0.0)),
         top_feature_importances=feat_items,
         validation_metrics=val_metrics,
         test_metrics=test_metrics,
+        category_evaluations=category_evaluations,
     )
 
 

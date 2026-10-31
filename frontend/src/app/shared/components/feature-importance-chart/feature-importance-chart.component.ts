@@ -23,7 +23,7 @@ interface RenderedFeatureItem {
         </div>
         <div class="fi-badge">
           <span class="material-symbols-outlined badge-icon">science</span>
-          <span>Clean Pilot RF Model Benchmark</span>
+          <span>Leakage-Excluded Feature Benchmark</span>
         </div>
       </div>
 
@@ -278,8 +278,8 @@ interface RenderedFeatureItem {
   `],
 })
 export class FeatureImportanceChartComponent {
-  @Input() title: string = 'Clean Random Forest Feature Importance (Top 10)';
-  @Input() subtitle: string = 'Relative Gini feature importances evaluated on leak-free statistical flow features';
+  @Input() title: string = 'Random Forest Feature Importance (Top 10)';
+  @Input() subtitle: string = 'Relative Gini feature importances evaluated on leakage-excluded statistical flow features';
   @Input() loading: boolean = false;
   @Input() errorMessage: string | null = null;
 

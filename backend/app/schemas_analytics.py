@@ -84,8 +84,34 @@ class SplitMetricsSummary(BaseModel):
     calibration_notice: Optional[str] = None
 
 
+class SplitClassMetrics(BaseModel):
+    """Detailed confusion and performance breakdown for a single category within a split."""
+    support: int
+    predicted_support: int
+    precision: float
+    recall: float
+    f1_score: float
+    specificity: float
+    fpr: float
+    fnr: float
+    tp: int
+    fp: int
+    fn: int
+    tn: int
+
+
+class CategoryGovernanceItem(BaseModel):
+    """Category-level evaluation metrics, official validation reliability, and test generalization."""
+    class_name: str
+    official_reliability_tier: str
+    gating_reason: str
+    generalization_assessment: str
+    validation: SplitClassMetrics
+    test: SplitClassMetrics
+
+
 class FeatureImportanceItem(BaseModel):
-    """Feature importance entry from clean Random Forest pilot."""
+    """Feature importance entry from Random Forest evaluation on leakage-excluded features."""
     feature_name: str
     clean_feature_name: str
     importance: float
@@ -101,6 +127,7 @@ class ModelDiagnosticsResponse(BaseModel):
     top_feature_importances: List[FeatureImportanceItem]
     validation_metrics: SplitMetricsSummary
     test_metrics: SplitMetricsSummary
+    category_evaluations: List[CategoryGovernanceItem] = Field(default_factory=list)
 
 
 # 4. Feature Redundancy & Multicollinearity Schemas
