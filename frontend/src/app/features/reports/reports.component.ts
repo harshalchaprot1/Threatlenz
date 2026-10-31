@@ -43,7 +43,7 @@ import {
         <div class="header-provenance">
           <span class="prov-tag">
             <span class="material-symbols-outlined prov-icon">dataset</span>
-            Source: CSE-CIC-IDS2018 Spark Precomputed Analytics
+            Dataset: CSE-CIC-IDS2018 Enterprise Netflow
           </span>
         </div>
       </div>

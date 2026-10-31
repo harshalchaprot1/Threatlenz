@@ -23,9 +23,9 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
     <div class="runs-container">
       <!-- Header -->
       <div class="page-header">
-        <h1 class="page-title">Pipeline Execution Runs &amp; Provenance</h1>
+        <h1 class="page-title">Analysis History &amp; Provenance</h1>
         <p class="page-subtitle">
-          Auditable execution history, deterministic SHA-256 source content manifests, and interval semantics.
+          Auditable analysis executions, verified dataset provenance, and window interval coverage.
         </p>
       </div>
 
@@ -33,7 +33,7 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
       @if (loading && !selectedRunDetail) {
         <div class="state-container">
           <mat-spinner diameter="40"></mat-spinner>
-          <span>Loading pipeline execution history...</span>
+          <span>Loading analysis execution history...</span>
         </div>
       }
 
@@ -41,7 +41,7 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
       @if (errorMessage && !loading) {
         <div class="state-container error-state" role="alert">
           <span class="material-symbols-outlined state-icon">error</span>
-          <h3>Pipeline Run History Error</h3>
+          <h3>Analysis History Error</h3>
           <p>{{ errorMessage }}</p>
           <button mat-flat-button color="accent" (click)="fetchRuns()">
             Retry
@@ -58,7 +58,7 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
               <div class="title-row">
                 <span class="material-symbols-outlined run-icon">verified</span>
                 <div>
-                  <h2 class="run-title">Run Detail: {{ selectedRunDetail.run_id }}</h2>
+                  <h2 class="run-title">Analysis Execution: {{ selectedRunDetail.run_id }}</h2>
                   <span class="run-subtitle">{{ selectedRunDetail.report_name }} (v{{ selectedRunDetail.pipeline_version }})</span>
                 </div>
               </div>
@@ -67,24 +67,11 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
               </button>
             </div>
 
+            <!-- Primary Provenance Summary -->
             <div class="provenance-grid">
               <div class="prov-box">
-                <span class="prov-label">Source Manifest SHA-256</span>
-                <span class="prov-val font-mono">{{ selectedRunDetail.source_manifest_hash }}</span>
-              </div>
-              <div class="prov-box">
-                <span class="prov-label">Manifest Files &amp; Volume</span>
-                <span class="prov-val font-mono">
-                  {{ selectedRunDetail.manifest_files_count }} files ({{ formatBytes(selectedRunDetail.manifest_total_bytes) }})
-                </span>
-              </div>
-              <div class="prov-box">
-                <span class="prov-label">Execution Duration</span>
-                <span class="prov-val font-mono">{{ selectedRunDetail.execution_duration_seconds }} seconds</span>
-              </div>
-              <div class="prov-box">
-                <span class="prov-label">Window Interval Semantics</span>
-                <span class="prov-val font-mono">{{ selectedRunDetail.interval_semantics }}</span>
+                <span class="prov-label">Network Flow Dataset</span>
+                <span class="prov-val">{{ selectedRunDetail.traffic_source }}</span>
               </div>
               <div class="prov-box">
                 <span class="prov-label">Campaign Window</span>
@@ -93,11 +80,16 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
                 </span>
               </div>
               <div class="prov-box">
-                <span class="prov-label">Traffic Source</span>
-                <span class="prov-val">{{ selectedRunDetail.traffic_source }}</span>
+                <span class="prov-label">Execution Duration</span>
+                <span class="prov-val font-mono">{{ selectedRunDetail.execution_duration_seconds }} seconds</span>
+              </div>
+              <div class="prov-box">
+                <span class="prov-label">Analysis Status</span>
+                <span class="prov-val font-mono status-pill">{{ selectedRunDetail.model_status }}</span>
               </div>
             </div>
 
+            <!-- Categorized Profile Summary Counts -->
             <div class="counts-row">
               <span class="count-pill pill-total">Total Profiles: {{ selectedRunDetail.total_profiles }}</span>
               <span class="count-pill pill-attack">Attack Classes: {{ selectedRunDetail.attack_categories_count }}</span>
@@ -105,6 +97,40 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
               <span class="count-pill pill-unknown">Unknown: {{ selectedRunDetail.unknown_categories_count }}</span>
               <span class="count-pill pill-target">Target Impact: {{ selectedRunDetail.target_impact_status }}</span>
             </div>
+
+            <!-- Technical Details Accordion -->
+            <details class="tech-details-accordion">
+              <summary class="tech-details-summary">
+                <span class="material-symbols-outlined summary-icon">settings</span>
+                <span>Technical &amp; Verification Details</span>
+              </summary>
+              <div class="tech-details-content">
+                <div class="tech-box">
+                  <span class="prov-label">Provenance Digest (SHA-256)</span>
+                  <span class="prov-val font-mono text-muted">{{ selectedRunDetail.source_manifest_hash }}</span>
+                </div>
+                <div class="tech-box">
+                  <span class="prov-label">Processed Partitions &amp; Volume</span>
+                  <span class="prov-val font-mono">
+                    {{ selectedRunDetail.manifest_files_count }} partitions ({{ formatBytes(selectedRunDetail.manifest_total_bytes) }})
+                  </span>
+                </div>
+                <div class="tech-box">
+                  <span class="prov-label">Observation Interval Semantics</span>
+                  <span class="prov-val font-mono">{{ selectedRunDetail.interval_semantics }}</span>
+                </div>
+                <div class="tech-box">
+                  <span class="prov-label">Model Information</span>
+                  <span class="prov-val font-mono">{{ selectedRunDetail.model_artifact }}</span>
+                </div>
+                @if (selectedRunDetail.model_quarantine_reason) {
+                  <div class="tech-box full-width">
+                    <span class="prov-label">Quarantine Disclosure</span>
+                    <span class="prov-val quarantine-note">{{ selectedRunDetail.model_quarantine_reason }}</span>
+                  </div>
+                }
+              </div>
+            </details>
           </div>
         }
 
@@ -170,7 +196,7 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
                     (click)="selectRun(row.run_id)"
                     class="action-btn"
                   >
-                    View Provenance
+                    View Details
                   </button>
                 </td>
               </ng-container>
@@ -183,7 +209,7 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
                 <td class="mat-cell empty-cell" [attr.colspan]="displayedColumns.length">
                   <div class="empty-state">
                     <span class="material-symbols-outlined" style="font-size: 32px; color: var(--tl-text-muted);">history</span>
-                    <span>No pipeline execution runs found in database.</span>
+                    <span>No analysis executions found in database.</span>
                   </div>
                 </td>
               </tr>
@@ -320,6 +346,58 @@ import { PipelineRunDetail, PipelineRunSummary } from '../../core/models';
     .pill-benign { color: #34D399; border-color: rgba(16, 185, 129, 0.3); }
     .pill-unknown { color: #C4B5FD; }
     .pill-target { color: #FBBF24; border-color: rgba(245, 158, 11, 0.3); }
+
+    .tech-details-accordion {
+      background: var(--tl-bg-card);
+      border: 1px solid var(--tl-border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      margin-top: 4px;
+    }
+
+    .tech-details-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--tl-text-secondary);
+      cursor: pointer;
+      user-select: none;
+
+      .summary-icon {
+        font-size: 16px;
+        color: var(--tl-cyan);
+      }
+    }
+
+    .tech-details-summary:hover {
+      color: var(--tl-text-primary);
+    }
+
+    .tech-details-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 10px;
+    }
+
+    .tech-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .quarantine-note {
+      color: #F87171;
+      font-size: 12px;
+    }
 
     .table-card {
       background: var(--tl-bg-surface);
@@ -466,7 +544,7 @@ export class RunsComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.errorMessage = err.message || 'Failed to query pipeline run history.';
+        this.errorMessage = err.message || 'Failed to query analysis history.';
         this.loading = false;
       },
     });

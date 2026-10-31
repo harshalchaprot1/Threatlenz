@@ -12,7 +12,7 @@ export const routes: Routes = [
   { path: 'profiles', component: ExplorerComponent, title: 'ThreatLenz — Threat Explorer' },
   { path: 'profiles/:id', component: ProfileDetailComponent, title: 'ThreatLenz — Profile Detail' },
   { path: 'governance', component: GovernanceComponent, title: 'ThreatLenz — Model Governance' },
-  { path: 'runs', component: RunsComponent, title: 'ThreatLenz — Pipeline Runs' },
-  { path: 'reports', component: ReportsComponent, title: 'ThreatLenz — Intelligence Reports' },
+  { path: 'runs', component: RunsComponent, title: 'ThreatLenz — Analysis History' },
+  { path: 'reports', component: ReportsComponent, title: 'ThreatLenz — Analytics & Reports' },
   { path: '**', redirectTo: 'dashboard' },
 ];

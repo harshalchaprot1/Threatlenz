@@ -49,6 +49,9 @@ hadoop/
 *.exe
 *.dll
 
+# Generated Spark Execution Artifacts
+/notebook_runs/
+
 # Operating System Files
 .DS_Store
 Thumbs.db

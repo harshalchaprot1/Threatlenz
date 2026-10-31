@@ -69,25 +69,25 @@ import {
           </div>
           <div class="disclosure-body">
             <p>
-              During initial model evaluation diagnostics, a subtle data leakage bug was identified: the indexed target label
-              (<code class="code-tag">label_idx</code>) was accidentally retained in the vector assembler feature list, producing artificially inflated
-              evaluation metrics.
+              During initial model evaluation diagnostics, a subtle data leakage issue was identified: the target label index
+              (<code class="code-tag">label_idx</code>) was unintentionally present in the evaluation feature pipeline, producing artificially inflated
+              metrics.
             </p>
             <p>
               <strong>Safeguards Enforced by ThreatLenz:</strong>
             </p>
             <ul class="safeguard-list">
               <li>
-                <strong>Immediate Quarantine:</strong> The compromised pilot model artifact (<code class="code-tag">models/pilot_rf_model</code>) was
-                quarantined and permanently disabled from operational inference.
+                <strong>Immediate Quarantine:</strong> The initial pilot model artifact
+                was quarantined and permanently disabled from operational threat scoring.
               </li>
               <li>
-                <strong>Feature Leakage Exclusion Test:</strong> Automated tests (<code class="code-tag">test_feature_exclusion_and_leakage_safeguards</code>)
-                strictly assert that <code class="code-tag">label_idx</code> and all label metadata are excluded from the training feature pipeline.
+                <strong>Automated Feature Leakage Verification:</strong> Automated regression safeguards
+                strictly verify that target label indices and all label metadata are excluded from model training and evaluation.
               </li>
               <li>
-                <strong>Clean Model Pilot:</strong> Retrained pilot (<code class="code-tag">models/clean_per_class_rf/model</code>) operates on strictly
-                leakage-free Netflow statistical features.
+                <strong>Independent Evaluation Model:</strong> The benchmark evaluation model operates on strictly
+                leakage-free Netflow statistical traffic features.
               </li>
             </ul>
           </div>
@@ -97,25 +97,25 @@ import {
         @if (activeRun) {
           <div class="panel-card">
             <div class="panel-header">
-              <span class="panel-title">Active Run Model Governance State</span>
+              <span class="panel-title">Current Model Evaluation &amp; Governance Status</span>
               <span class="run-id-tag">{{ activeRun.run_id }}</span>
             </div>
 
             <div class="governance-grid">
               <div class="gov-item">
-                <span class="gov-key">Model Artifact:</span>
+                <span class="gov-key">Model Information:</span>
                 <span class="gov-val font-mono">{{ activeRun.model_artifact }}</span>
               </div>
               <div class="gov-item">
-                <span class="gov-key">Model Status:</span>
+                <span class="gov-key">Governance Status:</span>
                 <span class="gov-val status-pill">{{ activeRun.model_status }}</span>
               </div>
               <div class="gov-item">
-                <span class="gov-key">Inference Executed:</span>
-                <span class="gov-val">{{ activeRun.model_inference_executed ? 'Yes' : 'No (Disabled for Governance)' }}</span>
+                <span class="gov-key">Operational Scoring:</span>
+                <span class="gov-val">{{ activeRun.model_inference_executed ? 'Active' : 'Disabled (Governance Safeguard)' }}</span>
               </div>
               <div class="gov-item">
-                <span class="gov-key">Metrics Evaluation Status:</span>
+                <span class="gov-key">Evaluation Metrics State:</span>
                 <span class="gov-val font-mono">{{ activeRun.model_evaluation_metrics_status }}</span>
               </div>
             </div>
@@ -144,8 +144,8 @@ import {
         <!-- Multi-Metric Validation Gating Matrix -->
         <div class="panel-card">
           <div class="panel-header">
-            <span class="panel-title">Multi-Metric Validation-Only Gating Specification</span>
-            <span class="spec-tag">docs/threat-intelligence-design.md §5</span>
+            <span class="panel-title">Validation Gating &amp; Reliability Policy</span>
+            <span class="spec-tag">Governance Standard §5</span>
           </div>
 
           <p class="gating-desc">

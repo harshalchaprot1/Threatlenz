@@ -73,7 +73,7 @@ interface RenderedFeatureItem {
           <div class="fi-footer">
             <span class="footer-note">
               <span class="material-symbols-outlined note-icon">verified_user</span>
-              Evaluated strictly on clean, non-leaking network flow features from <code>models/clean_per_class_rf/model</code>. All label metadata and <code>label_idx</code> are excluded.
+              Evaluated on verified, non-leaking network flow features. Target label indicators and metadata are strictly excluded.
             </span>
           </div>
         </div>
