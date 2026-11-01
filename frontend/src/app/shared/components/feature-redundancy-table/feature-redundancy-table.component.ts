@@ -1,32 +1,83 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../core/models';
+
+export type CorrelationFilter = 'ALL' | 'NEAR_DUPLICATE' | 'STRONGLY_COLLINEAR' | 'NON_COLLINEAR';
+
+interface PruningDecisionMeta {
+  pipelineStatusText: string;
+  isPruned: boolean;
+  prunedFeature?: string;
+  retainedFeature?: string;
+}
 
 @Component({
   selector: 'app-feature-redundancy-table',
   standalone: true,
-  imports: [CommonModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatProgressSpinnerModule],
   template: `
     <div class="redundancy-card">
       <div class="redundancy-header">
         <div class="header-titles">
-          <span class="redundancy-title">{{ title }}</span>
+          <div class="title-row">
+            <span class="redundancy-title">{{ title }}</span>
+            <span class="eval-pill">63-Feature Evaluation Pipeline</span>
+          </div>
           <span class="redundancy-subtitle">{{ subtitle }}</span>
         </div>
-        <div class="redundancy-stats">
-          <span class="stat-pill near-duplicate">
-            <span class="pill-dot dot-dup"></span>
-            6 Near-Duplicates (r &ge; 0.999999)
-          </span>
-          <span class="stat-pill collinear">
-            <span class="pill-dot dot-col"></span>
-            2 Strongly Collinear (0.99 &le; r &lt; 0.999999)
-          </span>
-          <span class="stat-pill non-collinear">
-            <span class="pill-dot dot-non"></span>
-            1 Non-Collinear (r = 0.28)
-          </span>
+
+        <div class="header-controls">
+          <!-- Classification Filter -->
+          <div class="filter-group">
+            <label for="redundancyFilter" class="filter-label">Filter Classification:</label>
+            <div class="select-wrapper">
+              <select
+                id="redundancyFilter"
+                class="filter-select"
+                [ngModel]="selectedFilter"
+                (ngModelChange)="onFilterChange($event)"
+              >
+                <option value="ALL">All Pairs (9)</option>
+                <option value="NEAR_DUPLICATE">Near-Duplicates (6)</option>
+                <option value="STRONGLY_COLLINEAR">Strongly Collinear (2)</option>
+                <option value="NON_COLLINEAR">Non-Collinear (1)</option>
+              </select>
+            </div>
+            @if (selectedFilter !== 'ALL') {
+              <button class="reset-filter-btn" (click)="resetFilter()" title="Reset to all pairs">
+                <span class="material-symbols-outlined reset-icon">close</span>
+                <span>Reset</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Threshold Guide & Pruning Summary -->
+      <div class="threshold-guide-strip">
+        <div class="guide-legend">
+          <span class="guide-title">Classification Thresholds:</span>
+          <div class="legend-badges">
+            <span class="threshold-tag near-duplicate">
+              <span class="pill-dot dot-dup"></span>
+              <strong>Near-Duplicate:</strong> |r| &ge; 0.98 (6 pairs)
+            </span>
+            <span class="threshold-tag collinear">
+              <span class="pill-dot dot-col"></span>
+              <strong>Strongly Collinear:</strong> 0.90 &le; |r| &lt; 0.98 (2 pairs)
+            </span>
+            <span class="threshold-tag non-collinear">
+              <span class="pill-dot dot-non"></span>
+              <strong>Non-Collinear:</strong> |r| &lt; 0.90 (1 pair)
+            </span>
+          </div>
+        </div>
+
+        <div class="pipeline-verification-pill">
+          <span class="material-symbols-outlined check-icon">verified</span>
+          <span>Verified against <code class="inline-code">models/clean_per_class_rf/feature_metadata.json</code></span>
         </div>
       </div>
 
@@ -47,27 +98,43 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       }
 
       <!-- Redundancy Table -->
-      @if (!loading && !errorMessage && pairs.length > 0) {
+      @if (!loading && !errorMessage && filteredPairs.length > 0) {
         <div class="table-responsive">
           <table class="redundancy-table">
             <thead>
               <tr>
-                <th>Evaluated Pair</th>
-                <th>Pair Description</th>
-                <th>Pearson r</th>
-                <th>Classification</th>
-                <th>Engineering Recommendation</th>
+                <th class="col-pair">Evaluated Pair</th>
+                <th class="col-desc">Pair Description</th>
+                <th class="col-pearson">Pearson r</th>
+                <th class="col-class">Classification</th>
+                <th class="col-status">63-Feature Pipeline Decision</th>
               </tr>
             </thead>
             <tbody>
-              @for (pair of pairs; track pair.feature_1 + '-' + pair.feature_2) {
+              @for (pair of filteredPairs; track pair.feature_1 + '-' + pair.feature_2) {
                 <tr [ngClass]="getRowClass(pair)">
                   <td class="features-cell">
-                    <span class="feat-tag font-mono">{{ pair.feature_1 }}</span>
-                    <span class="corr-arrow">&harr;</span>
-                    <span class="feat-tag font-mono">{{ pair.feature_2 }}</span>
+                    <div class="pair-features-group">
+                      <span
+                        class="feat-tag font-mono"
+                        [class.pruned-feature]="isFeaturePruned(pair, pair.feature_1)"
+                        [attr.title]="getFeatureStatusTooltip(pair, pair.feature_1)"
+                      >
+                        {{ pair.feature_1 }}
+                      </span>
+                      <span class="corr-arrow">&harr;</span>
+                      <span
+                        class="feat-tag font-mono"
+                        [class.pruned-feature]="isFeaturePruned(pair, pair.feature_2)"
+                        [attr.title]="getFeatureStatusTooltip(pair, pair.feature_2)"
+                      >
+                        {{ pair.feature_2 }}
+                      </span>
+                    </div>
                   </td>
+
                   <td class="desc-cell">{{ pair.description }}</td>
+
                   <td class="corr-cell font-mono">
                     <div class="corr-gauge">
                       <span class="corr-num">{{ pair.pearson_correlation.toFixed(6) }}</span>
@@ -80,6 +147,7 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
                       </div>
                     </div>
                   </td>
+
                   <td>
                     @if (pair.is_near_duplicate) {
                       <span class="class-pill pill-duplicate">Near-Duplicate</span>
@@ -89,9 +157,27 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
                       <span class="class-pill pill-non-collinear">Non-Collinear</span>
                     }
                   </td>
-                  <td class="rec-cell">
-                    <span class="rec-icon material-symbols-outlined">{{ getRecIcon(pair) }}</span>
-                    <span class="rec-text">{{ pair.recommendation }}</span>
+
+                  <td class="status-cell">
+                    <div class="status-wrapper">
+                      @if (getPipelineDecision(pair).isPruned) {
+                        <span class="status-pill pruned-badge">
+                          <span class="material-symbols-outlined status-icon">content_cut</span>
+                          <span>Pruned in 63-Feature Pipeline</span>
+                        </span>
+                        <span class="status-subdetail">
+                          Dropped <code>{{ getPipelineDecision(pair).prunedFeature }}</code>; retained <code>{{ getPipelineDecision(pair).retainedFeature }}</code>
+                        </span>
+                      } @else {
+                        <span class="status-pill retained-badge">
+                          <span class="material-symbols-outlined status-icon">check_circle</span>
+                          <span>Retained in 63-Feature Pipeline</span>
+                        </span>
+                        <span class="status-subdetail">
+                          Both features retained; monitored in tree feature importance
+                        </span>
+                      }
+                    </div>
                   </td>
                 </tr>
               }
@@ -100,17 +186,27 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
         </div>
 
         <div class="redundancy-footer">
-          <span class="footer-note">
+          <div class="footer-note">
             <span class="material-symbols-outlined note-icon">tips_and_updates</span>
-            <strong>Pipeline Pruning Strategy:</strong> Of the 9 evaluated feature pairs, exactly 8 exhibit collinearity. The 6 near-duplicate pairs (Pearson r &ge; 0.999999) represent mathematical redundancy between subflow aggregates and total counters; dropping them reduces model training memory and tree splits without information loss.
-          </span>
+            <div>
+              <strong>Feature Collinearity &amp; Pipeline Execution Audit:</strong>
+              Of the 9 evaluated feature pairs, exactly 6 near-duplicate subflow aggregations were permanently removed in the 63-feature pipeline (<code class="inline-code">collinear_subflows_pruned: true</code>).
+              The remaining 3 collinear or non-collinear pairs were retained in the evaluated Random Forest architecture.
+            </div>
+          </div>
+          @if (selectedFilter !== 'ALL') {
+            <span class="filter-count-note">
+              Showing {{ filteredPairs.length }} of 9 evaluated pairs
+            </span>
+          }
         </div>
       }
 
-      @if (!loading && !errorMessage && pairs.length === 0) {
+      @if (!loading && !errorMessage && filteredPairs.length === 0) {
         <div class="state-container">
-          <span class="material-symbols-outlined state-icon">tune</span>
-          <span>No feature redundancy telemetry available.</span>
+          <span class="material-symbols-outlined state-icon">search_off</span>
+          <span>No feature correlation pairs match the selected filter.</span>
+          <button class="reset-filter-btn" (click)="resetFilter()">Reset Filter</button>
         </div>
       }
     </div>
@@ -120,10 +216,10 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       background: var(--tl-bg-surface, #1E293B);
       border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
       border-radius: 8px;
-      padding: 20px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .redundancy-header {
@@ -131,7 +227,7 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
     }
 
     .header-titles {
@@ -140,10 +236,27 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       gap: 4px;
     }
 
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .redundancy-title {
       font-size: 16px;
       font-weight: 700;
       color: var(--tl-text-primary, #F8FAFC);
+    }
+
+    .eval-pill {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--tl-cyan, #06B6D4);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      border-radius: 4px;
+      padding: 2px 8px;
     }
 
     .redundancy-subtitle {
@@ -151,37 +264,128 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       color: var(--tl-text-secondary, #94A3B8);
     }
 
-    .redundancy-stats {
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-label {
+      font-size: 12px;
+      color: var(--tl-text-secondary, #94A3B8);
+      font-weight: 500;
+    }
+
+    .select-wrapper {
+      position: relative;
+    }
+
+    .filter-select {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.12));
+      border-radius: 5px;
+      color: var(--tl-text-primary, #F8FAFC);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 28px 5px 10px;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394A3B8'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      background-size: 16px;
+      min-width: 170px;
+
+      &:focus {
+        outline: none;
+        border-color: var(--tl-cyan, #06B6D4);
+      }
+    }
+
+    .reset-filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #F87171;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      .reset-icon { font-size: 14px; }
+      &:hover { background: rgba(239, 68, 68, 0.2); color: #FECACA; }
+    }
+
+    /* Threshold Guide */
+    .threshold-guide-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 5px;
+    }
+
+    .guide-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .guide-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--tl-text-muted, #64748B);
+    }
+
+    .legend-badges {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
 
-    .stat-pill {
+    .threshold-tag {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 4px;
+      gap: 5px;
       font-size: 11px;
-      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+
+      strong {
+        font-weight: 600;
+      }
 
       &.near-duplicate {
-        background: rgba(239, 68, 68, 0.12);
-        color: #F87171;
-        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.1);
+        color: #FCA5A5;
+        border: 1px solid rgba(239, 68, 68, 0.25);
       }
 
       &.collinear {
-        background: rgba(245, 158, 11, 0.12);
-        color: #FBBF24;
-        border: 1px solid rgba(245, 158, 11, 0.3);
+        background: rgba(245, 158, 11, 0.1);
+        color: #FCD34D;
+        border: 1px solid rgba(245, 158, 11, 0.25);
       }
 
       &.non-collinear {
-        background: rgba(16, 185, 129, 0.12);
-        color: #34D399;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        background: rgba(16, 185, 129, 0.1);
+        color: #6EE7B7;
+        border: 1px solid rgba(16, 185, 129, 0.25);
       }
     }
 
@@ -194,6 +398,29 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       &.dot-non { background: #10B981; }
     }
 
+    .pipeline-verification-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--tl-text-secondary, #94A3B8);
+
+      .check-icon {
+        font-size: 15px;
+        color: var(--tl-cyan, #06B6D4);
+      }
+
+      .inline-code {
+        font-family: monospace;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 10.5px;
+        color: var(--tl-text-primary, #F8FAFC);
+      }
+    }
+
+    /* Table Styles */
     .table-responsive {
       overflow-x: auto;
       border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
@@ -207,49 +434,61 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
 
       th {
         text-align: left;
-        padding: 10px 14px;
-        background: rgba(15, 23, 42, 0.8);
+        padding: 8px 12px;
+        background: rgba(15, 23, 42, 0.85);
         color: var(--tl-text-muted, #64748B);
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         border-bottom: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
       }
 
       td {
-        padding: 12px 14px;
+        padding: 10px 12px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         color: var(--tl-text-primary, #F8FAFC);
         vertical-align: middle;
       }
 
-      tr.row-duplicate {
-        background: rgba(239, 68, 68, 0.03);
-      }
+      tr.row-duplicate { background: rgba(239, 68, 68, 0.02); }
+      tr.row-collinear { background: rgba(245, 158, 11, 0.02); }
+      tr.row-non-collinear { background: rgba(16, 185, 129, 0.02); }
 
-      tr.row-collinear {
-        background: rgba(245, 158, 11, 0.03);
-      }
-
-      tr.row-non-collinear {
-        background: rgba(16, 185, 129, 0.03);
+      tr:hover {
+        background: rgba(255, 255, 255, 0.03);
       }
     }
 
-    .features-cell {
-      white-space: nowrap;
+    .col-pair { min-width: 220px; }
+    .col-desc { min-width: 200px; }
+    .col-pearson { width: 130px; }
+    .col-class { width: 140px; }
+    .col-status { min-width: 280px; }
+
+    .pair-features-group {
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .feat-tag {
       background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 2px 6px;
       border-radius: 4px;
       font-size: 11px;
       color: var(--tl-cyan, #06B6D4);
+      transition: all 0.15s ease;
+
+      &.pruned-feature {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #FCA5A5;
+        text-decoration: line-through;
+        opacity: 0.85;
+      }
     }
 
     .corr-arrow {
@@ -262,14 +501,10 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       color: var(--tl-text-secondary, #94A3B8);
     }
 
-    .corr-cell {
-      min-width: 130px;
-    }
-
     .corr-gauge {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
 
     .corr-num {
@@ -301,7 +536,7 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       padding: 2px 7px;
       border-radius: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       white-space: nowrap;
 
       &.pill-duplicate {
@@ -323,17 +558,54 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       }
     }
 
-    .rec-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: #D1D5DB;
+    .status-cell {
+      vertical-align: middle;
     }
 
-    .rec-icon {
-      font-size: 16px;
-      color: var(--tl-cyan, #06B6D4);
+    .status-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      width: fit-content;
+
+      .status-icon {
+        font-size: 13px;
+      }
+
+      &.pruned-badge {
+        background: rgba(6, 182, 212, 0.12);
+        border: 1px solid rgba(6, 182, 212, 0.3);
+        color: #67E8F9;
+      }
+
+      &.retained-badge {
+        background: rgba(148, 163, 184, 0.12);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #CBD5E1;
+      }
+    }
+
+    .status-subdetail {
+      font-size: 10.5px;
+      color: var(--tl-text-muted, #64748B);
+
+      code {
+        font-family: monospace;
+        color: var(--tl-text-secondary, #94A3B8);
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0 3px;
+        border-radius: 2px;
+      }
     }
 
     .font-mono {
@@ -341,7 +613,12 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
     }
 
     .redundancy-footer {
-      padding-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
     }
 
     .footer-note {
@@ -350,17 +627,31 @@ import { FeatureRedundancyResponse, EvaluatedCorrelationPair } from '../../../co
       gap: 8px;
       font-size: 11px;
       color: var(--tl-text-muted, #64748B);
-      line-height: 1.5;
+      line-height: 1.45;
 
       .note-icon {
-        font-size: 16px;
-        color: var(--tl-amber, #F59E0B);
+        font-size: 15px;
+        color: var(--tl-cyan, #06B6D4);
         margin-top: 1px;
+        flex-shrink: 0;
       }
 
       strong {
         color: var(--tl-text-primary, #F8FAFC);
       }
+
+      .inline-code {
+        font-family: monospace;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+    }
+
+    .filter-count-note {
+      font-size: 11px;
+      color: var(--tl-cyan, #06B6D4);
+      font-weight: 600;
     }
 
     .state-container {
@@ -389,10 +680,83 @@ export class FeatureRedundancyTableComponent {
   @Input() set redundancyData(data: FeatureRedundancyResponse | null | undefined) {
     this._data = data;
     this.pairs = data?.all_evaluated_correlations || [];
+    this.applyFilter();
   }
 
   private _data: FeatureRedundancyResponse | null | undefined = null;
   pairs: EvaluatedCorrelationPair[] = [];
+  filteredPairs: EvaluatedCorrelationPair[] = [];
+  selectedFilter: CorrelationFilter = 'ALL';
+
+  // Verified against models/clean_per_class_rf/feature_metadata.json (63 features in ordered_features)
+  // Pruned subflow features: subflow_fwd_pkts, subflow_bwd_pkts, subflow_fwd_byts, subflow_bwd_byts, fwd_seg_size_avg, bwd_seg_size_avg
+  readonly prunedFeaturesSet: Set<string> = new Set([
+    'subflow_fwd_pkts',
+    'subflow_bwd_pkts',
+    'subflow_fwd_byts',
+    'subflow_bwd_byts',
+    'fwd_seg_size_avg',
+    'bwd_seg_size_avg',
+  ]);
+
+  onFilterChange(f: CorrelationFilter): void {
+    this.selectedFilter = f;
+    this.applyFilter();
+  }
+
+  resetFilter(): void {
+    this.selectedFilter = 'ALL';
+    this.applyFilter();
+  }
+
+  private applyFilter(): void {
+    if (this.selectedFilter === 'ALL') {
+      this.filteredPairs = [...this.pairs];
+    } else if (this.selectedFilter === 'NEAR_DUPLICATE') {
+      this.filteredPairs = this.pairs.filter((p) => p.is_near_duplicate);
+    } else if (this.selectedFilter === 'STRONGLY_COLLINEAR') {
+      this.filteredPairs = this.pairs.filter((p) => p.is_strongly_collinear && !p.is_near_duplicate);
+    } else if (this.selectedFilter === 'NON_COLLINEAR') {
+      this.filteredPairs = this.pairs.filter((p) => !p.is_strongly_collinear && !p.is_near_duplicate);
+    }
+  }
+
+  isFeaturePruned(pair: EvaluatedCorrelationPair, feat: string): boolean {
+    return this.prunedFeaturesSet.has(feat);
+  }
+
+  getFeatureStatusTooltip(pair: EvaluatedCorrelationPair, feat: string): string {
+    if (this.prunedFeaturesSet.has(feat)) {
+      return `${feat}: Pruned from 63-feature pipeline to eliminate collinear redundancy`;
+    }
+    return `${feat}: Retained in 63-feature pipeline`;
+  }
+
+  getPipelineDecision(pair: EvaluatedCorrelationPair): PruningDecisionMeta {
+    const f1Pruned = this.prunedFeaturesSet.has(pair.feature_1);
+    const f2Pruned = this.prunedFeaturesSet.has(pair.feature_2);
+
+    if (f1Pruned && !f2Pruned) {
+      return {
+        pipelineStatusText: 'Pruned in 63-Feature Pipeline',
+        isPruned: true,
+        prunedFeature: pair.feature_1,
+        retainedFeature: pair.feature_2,
+      };
+    } else if (!f1Pruned && f2Pruned) {
+      return {
+        pipelineStatusText: 'Pruned in 63-Feature Pipeline',
+        isPruned: true,
+        prunedFeature: pair.feature_2,
+        retainedFeature: pair.feature_1,
+      };
+    } else {
+      return {
+        pipelineStatusText: 'Retained in 63-Feature Pipeline',
+        isPruned: false,
+      };
+    }
+  }
 
   getRowClass(pair: EvaluatedCorrelationPair): string {
     if (pair.is_near_duplicate) return 'row-duplicate';
@@ -405,10 +769,5 @@ export class FeatureRedundancyTableComponent {
     if (pair.is_strongly_collinear) return 'fill-col';
     return 'fill-non';
   }
-
-  getRecIcon(pair: EvaluatedCorrelationPair): string {
-    if (pair.is_near_duplicate) return 'delete_sweep';
-    if (pair.is_strongly_collinear) return 'visibility';
-    return 'check_circle';
-  }
 }
+

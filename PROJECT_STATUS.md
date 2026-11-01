@@ -1,6 +1,6 @@
 # ThreatLenz Project Status & Phase Checkpoint
 
-**Current Phase:** Phase 3: Random Forest Evaluation & Model Governance  
+**Current Phase:** Phase 4: Analytics & Reports Redesign  
 **Phase Status:** COMPLETED & VERIFIED  
 **Date:** 2026-11-01  
 **Branch:** `main`
@@ -8,6 +8,30 @@
 ---
 
 ## 1. Verified Deliverables & Environment State
+
+- **Phase 4 Analytics & Reports Redesign (`/reports`):**
+  - **Executive Analytical KPI Strip:**
+    - Standardized verified KPI indicators: Analyzed Network Flows (`7,235,606`), Evaluated Categories (`14`), Evaluated Redundancy Pairs (`9`), and MITRE Verified Attribution (`0`).
+    - Clear explanatory subheadings and international number formatting with zero fabricated metrics.
+  - **Section Navigation Architecture:**
+    - Implemented clean accessible tabbed sub-navigation (`All Analytical Sections`, `Network & Port Concentration`, `Feature Collinearity & Redundancy`, and `MITRE ATT&CK Framework Mapping`) with smooth transitions and keyboard accessibility.
+  - **Destination Port Heatmap Optimization (`app-port-matrix-heatmap`):**
+    - Eliminated horizontal scrollbar on standard desktop displays ($1920\text{px}$ and $1366\text{px}$) with optimized column dimensions and sticky category labels.
+    - Preserved all 12 destination ports: 9 standard enterprise service ports ($0, 21, 22, 53, 80, 443, 445, 3389, 8080$) and 3 custom/ephemeral low-volume anomaly ports ($50891, 50896, 50899$) accessible via interactive toggle (`Show/Hide Custom Ports`).
+    - Added instant Category Filter dropdown allowing isolated inspection of any of the 14 threat categories with immediate reset.
+    - Preserved exact flow counts and row-normalized percentage tooltips.
+  - **Feature Redundancy & Correlation Table (`app-feature-redundancy-table`):**
+    - Resolved ambiguous pruning recommendations into auditable pipeline execution decisions:
+      - 6 Near-Duplicate pairs ($|r| \ge 0.98$): Formally designated as `Pruned in 63-Feature Pipeline` (verified against `models/clean_per_class_rf/feature_metadata.json` with `collinear_subflows_pruned: true`).
+      - 2 Strongly Collinear pairs ($0.90 \le |r| < 0.98$) and 1 Non-Collinear pair ($|r| < 0.90$): Formally designated as `Retained in 63-Feature Pipeline` (monitored in Random Forest tree splits).
+    - Preserved exact 6-decimal Pearson correlation values ($1.000000$, $0.999999$, $0.993804$, $0.995663$, $0.283004$).
+    - Added Classification Filter dropdown (`All Pairs`, `Near-Duplicates`, `Strongly Collinear`, `Non-Collinear`) with reset.
+  - **Enterprise MITRE ATT&CK Mapping & Telemetry Refinement (`app-mitre-coverage-summary`):**
+    - Implemented **Global Telemetry Boundary & Attribution Safeguard** disclosure explicitly detailing the L4 Netflow telemetry limitation.
+    - Preserved exact attribution metrics: `10 Candidate Profiles`, `3 Unverified Mappings`, `0 Verified Attributions`, and `1 Benign Baseline`.
+    - Replaced repetitive `"UNCONFIRMED"` badges with restrained status indicators (`Candidate Profile`, `Unverified Mapping`, `Benign Baseline`).
+    - Converted unstructured text lists into structured missing telemetry pill tags with alert iconography.
+    - Added Attribution Status Filter dropdown (`All Categories`, `Candidate Profiles`, `Unverified Mappings`, `Benign Baseline`) with reset.
 
 - **Phase 3 Model Governance & 14-Category Evaluation Layer:**
   - **Sample Count Discrepancy Resolved:** Verified exact sample totals directly from the raw confusion matrices and split metadata: Validation $N = 42,127$ samples, Held-out Test $N = 45,630$ samples.

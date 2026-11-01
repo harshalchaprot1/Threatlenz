@@ -16,7 +16,10 @@ import {
   FeatureRedundancyTableComponent,
   MitreCoverageSummaryComponent,
   MitreProfileSummaryItem,
+  StatCardComponent,
 } from '../../shared/components';
+
+export type ReportTab = 'all' | 'ports' | 'redundancy' | 'mitre';
 
 @Component({
   selector: 'app-reports',
@@ -26,6 +29,7 @@ import {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    StatCardComponent,
     PortMatrixHeatmapComponent,
     FeatureRedundancyTableComponent,
     MitreCoverageSummaryComponent,
@@ -70,24 +74,124 @@ import {
 
       <!-- Main Reports Content -->
       @if (!loading && !errorMessage) {
+        <!-- Executive Analytical KPI Strip -->
+        <div class="kpi-grid">
+          <app-stat-card
+            title="Analyzed Network Flows"
+            [value]="totalFlowsFormatted"
+            subtitle="Complete CSE-CIC-IDS2018 dataset records"
+            icon="analytics"
+            badgeText="Full Ingestion"
+            badgeType="info"
+          ></app-stat-card>
+
+          <app-stat-card
+            title="Evaluated Categories"
+            [value]="evaluatedCategoriesCount.toString()"
+            subtitle="13 threat categories + 1 Benign baseline"
+            icon="coronavirus"
+            badgeText="14 Classes"
+            badgeType="default"
+          ></app-stat-card>
+
+          <app-stat-card
+            title="Evaluated Redundancy Pairs"
+            [value]="evaluatedPairsCount.toString()"
+            subtitle="Pearson correlation pairs audited (6 near-duplicate)"
+            icon="compare_arrows"
+            badgeText="9 Pairs Audited"
+            badgeType="warning"
+          ></app-stat-card>
+
+          <app-stat-card
+            title="MITRE Verified Attribution"
+            [value]="verifiedMitreCount.toString()"
+            subtitle="Netflow L4 boundary; host telemetry required"
+            icon="verified_user"
+            badgeText="0 Verified (13 Candidate)"
+            badgeType="default"
+          ></app-stat-card>
+        </div>
+
+        <!-- Section Navigation Tabs -->
+        <div class="section-nav">
+          <div class="nav-tabs" role="tablist" aria-label="Analytical Report Sections">
+            <button
+              class="nav-tab-btn"
+              [class.active]="activeTab === 'all'"
+              (click)="setActiveTab('all')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'all'"
+            >
+              <span class="material-symbols-outlined tab-icon">dashboard</span>
+              <span>All Analytical Sections</span>
+            </button>
+
+            <button
+              class="nav-tab-btn"
+              [class.active]="activeTab === 'ports'"
+              (click)="setActiveTab('ports')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'ports'"
+            >
+              <span class="material-symbols-outlined tab-icon">hub</span>
+              <span>Network &amp; Port Concentration</span>
+            </button>
+
+            <button
+              class="nav-tab-btn"
+              [class.active]="activeTab === 'redundancy'"
+              (click)="setActiveTab('redundancy')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'redundancy'"
+            >
+              <span class="material-symbols-outlined tab-icon">schema</span>
+              <span>Feature Collinearity &amp; Redundancy</span>
+            </button>
+
+            <button
+              class="nav-tab-btn"
+              [class.active]="activeTab === 'mitre'"
+              (click)="setActiveTab('mitre')"
+              role="tab"
+              [attr.aria-selected]="activeTab === 'mitre'"
+            >
+              <span class="material-symbols-outlined tab-icon">policy</span>
+              <span>MITRE ATT&amp;CK Framework Mapping</span>
+            </button>
+          </div>
+        </div>
+
         <div class="reports-grid">
           <!-- SECTION 1: Destination Port Concentration Heatmap -->
-          <app-port-matrix-heatmap
-            [portData]="portData"
-            [loading]="loading"
-          ></app-port-matrix-heatmap>
+          @if (activeTab === 'all' || activeTab === 'ports') {
+            <section class="report-section" aria-label="Network & Port Concentration">
+              <app-port-matrix-heatmap
+                [portData]="portData"
+                [loading]="loading"
+              ></app-port-matrix-heatmap>
+            </section>
+          }
 
           <!-- SECTION 2: Feature Redundancy & Correlation Pruning -->
-          <app-feature-redundancy-table
-            [redundancyData]="redundancyData"
-            [loading]="loading"
-          ></app-feature-redundancy-table>
+          @if (activeTab === 'all' || activeTab === 'redundancy') {
+            <section class="report-section" aria-label="Feature Collinearity & Redundancy">
+              <app-feature-redundancy-table
+                [redundancyData]="redundancyData"
+                [loading]="loading"
+              ></app-feature-redundancy-table>
+            </section>
+          }
 
           <!-- SECTION 3: MITRE ATT&CK Coverage & Telemetry Gap Analysis -->
-          <app-mitre-coverage-summary
-            [profilesWithMitre]="mitreItems"
-            [loading]="loading"
-          ></app-mitre-coverage-summary>
+          @if (activeTab === 'all' || activeTab === 'mitre') {
+            <section class="report-section" aria-label="MITRE ATT&CK Framework Mapping">
+              <app-mitre-coverage-summary
+                [profilesWithMitre]="mitreItems"
+                [loading]="loading"
+              ></app-mitre-coverage-summary>
+            </section>
+          }
         </div>
       }
     </div>
@@ -96,7 +200,7 @@ import {
     .reports-container {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
     .page-header {
@@ -105,7 +209,6 @@ import {
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
-      margin-bottom: -4px;
     }
 
     .header-titles {
@@ -150,10 +253,84 @@ import {
       }
     }
 
+    /* Executive KPI Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    /* Section Navigation */
+    .section-nav {
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      padding-bottom: 2px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    .nav-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--tl-text-secondary, #94A3B8);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease-in-out;
+
+      .tab-icon {
+        font-size: 16px;
+        color: var(--tl-text-muted, #64748B);
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--tl-text-primary, #F8FAFC);
+        border-color: rgba(255, 255, 255, 0.06);
+
+        .tab-icon {
+          color: var(--tl-text-primary, #F8FAFC);
+        }
+      }
+
+      &.active {
+        background: rgba(6, 182, 212, 0.12);
+        color: var(--tl-cyan, #06B6D4);
+        border-color: rgba(6, 182, 212, 0.35);
+        font-weight: 600;
+
+        .tab-icon {
+          color: var(--tl-cyan, #06B6D4);
+        }
+      }
+    }
+
     .reports-grid {
       display: flex;
       flex-direction: column;
       gap: 24px;
+    }
+
+    .report-section {
+      display: flex;
+      flex-direction: column;
     }
 
     .state-container {
@@ -184,11 +361,35 @@ import {
         text-align: center;
       }
     }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 1200px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      .nav-tabs {
+        width: 100%;
+      }
+    }
   `],
 })
 export class ReportsComponent implements OnInit {
   loading: boolean = true;
   errorMessage: string | null = null;
+
+  activeTab: ReportTab = 'all';
+
+  // KPI Strip Data
+  readonly totalFlowsFormatted: string = '7,235,606';
+  readonly evaluatedCategoriesCount: number = 14;
+  readonly evaluatedPairsCount: number = 9;
+  readonly verifiedMitreCount: number = 0;
 
   portData: DestinationPortAnalyticsResponse | null = null;
   redundancyData: FeatureRedundancyResponse | null = null;
@@ -198,6 +399,10 @@ export class ReportsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadReportsData();
+  }
+
+  setActiveTab(tab: ReportTab): void {
+    this.activeTab = tab;
   }
 
   loadReportsData(): void {
@@ -232,7 +437,7 @@ export class ReportsComponent implements OnInit {
             }));
             this.loading = false;
           },
-          error: (err) => {
+          error: (_err) => {
             // Still present the other two reports even if mitre batch fails
             this.mitreItems = [];
             this.loading = false;
@@ -246,4 +451,5 @@ export class ReportsComponent implements OnInit {
     });
   }
 }
+
 
