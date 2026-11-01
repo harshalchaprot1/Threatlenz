@@ -5,11 +5,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ThreatLenzApiService } from '../../core/services/api.service';
 import {
   AdvisoryResponse,
   MitreMappingResponse,
+  ModelDiagnosticsResponse,
   RiskAssessmentResponse,
   ThreatProfileSummary,
 } from '../../core/models';
@@ -141,11 +143,11 @@ import {
           <!-- Model Reliability -->
           <app-stat-card
             title="Model Reliability Tier"
-            [value]="getReliabilityDisplayLabel(profile.model_reliability)"
+            [value]="getReliabilityDisplayLabel(resolvedReliabilityTier)"
             subtitle="Strict validation gating (§5 standard)"
             icon="verified"
-            [badgeText]="profile.model_reliability ? 'Gated Benchmark' : 'Negative Baseline'"
-            [badgeType]="getReliabilityBadgeType(profile.model_reliability)"
+            [badgeText]="getReliabilityBadgeText(resolvedReliabilityTier)"
+            [badgeType]="getReliabilityBadgeType(resolvedReliabilityTier)"
           ></app-stat-card>
 
           <!-- Classification Context -->
@@ -2212,6 +2214,7 @@ export class ProfileDetailComponent implements OnInit {
   risk: RiskAssessmentResponse | null = null;
   mitre: MitreMappingResponse | null = null;
   advisories: AdvisoryResponse[] = [];
+  resolvedReliabilityTier: string | null = null;
   selectedTabIndex: number = 0;
 
   constructor(
@@ -2247,12 +2250,16 @@ export class ProfileDetailComponent implements OnInit {
       risk: this.apiService.getProfileRisk(snapshotId),
       mitre: this.apiService.getProfileMitre(snapshotId),
       advisories: this.apiService.getProfileAdvisories(snapshotId),
+      diagnostics: this.apiService.getModelDiagnostics().pipe(
+        catchError(() => of(null as ModelDiagnosticsResponse | null))
+      ),
     }).subscribe({
-      next: ({ profile, risk, mitre, advisories }) => {
+      next: ({ profile, risk, mitre, advisories, diagnostics }) => {
         this.profile = profile;
         this.risk = risk;
         this.mitre = mitre;
         this.advisories = advisories.items;
+        this.resolvedReliabilityTier = this.resolveReliabilityTier(profile, diagnostics);
         this.loading = false;
       },
       error: (err) => {
@@ -2260,6 +2267,34 @@ export class ProfileDetailComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  private resolveReliabilityTier(
+    profile: ThreatProfileSummary,
+    diagnostics: ModelDiagnosticsResponse | null
+  ): string {
+    // 1. Benign reference baseline or non-attack profile is strictly Negative Baseline
+    if (!profile.is_attack || profile.canonical_label === 'Benign') {
+      return 'BASELINE';
+    }
+
+    // 2. If diagnostics API call failed or timed out for an attack profile
+    if (!diagnostics) {
+      return 'UNAVAILABLE';
+    }
+
+    // 3. Exact-match canonical_label against authoritative category_evaluations class_name
+    if (diagnostics.category_evaluations && diagnostics.category_evaluations.length > 0) {
+      const match = diagnostics.category_evaluations.find(
+        (e) => e.class_name === profile.canonical_label
+      );
+      if (match?.official_reliability_tier) {
+        return match.official_reliability_tier;
+      }
+    }
+
+    // 4. Successful diagnostics response but no evaluation record exists for this attack category
+    return 'UNMATCHED';
   }
 
   formatBytes(bytes: number): string {
@@ -2331,23 +2366,43 @@ export class ProfileDetailComponent implements OnInit {
   }
 
   getReliabilityDisplayLabel(rel?: string | null): string {
-    if (!rel) return 'Baseline (N/A)';
+    if (rel === 'BASELINE') return 'Baseline (N/A)';
+    if (rel === 'UNAVAILABLE') return 'Evaluation Unavailable';
+    if (rel === 'UNMATCHED') return 'Unevaluated Class';
     switch (rel) {
       case 'HIGH_RELIABILITY': return 'High Reliability';
       case 'EVALUABLE': return 'Evaluable';
       case 'UNRELIABLE': return 'Unreliable (Excluded)';
       case 'NON_EVALUABLE': return 'Non-Evaluable';
-      default: return String(rel);
+      default: return rel ? String(rel) : 'Baseline (N/A)';
     }
   }
 
   getReliabilityBadgeType(rel?: string | null): 'default' | 'success' | 'warning' | 'danger' | 'info' {
-    if (!rel) return 'default';
     switch (rel) {
       case 'HIGH_RELIABILITY': return 'success';
       case 'EVALUABLE': return 'info';
       case 'UNRELIABLE': return 'warning';
-      default: return 'default';
+      case 'NON_EVALUABLE': return 'danger';
+      case 'UNMATCHED': return 'warning';
+      case 'UNAVAILABLE':
+      case 'BASELINE':
+      default:
+        return 'default';
+    }
+  }
+
+  getReliabilityBadgeText(rel?: string | null): string {
+    switch (rel) {
+      case 'BASELINE': return 'Negative Baseline';
+      case 'HIGH_RELIABILITY':
+      case 'EVALUABLE':
+      case 'UNRELIABLE':
+      case 'NON_EVALUABLE':
+        return 'Gated Benchmark';
+      case 'UNAVAILABLE': return 'Telemetry Unavailable';
+      case 'UNMATCHED': return 'No Evaluation Record';
+      default: return 'Negative Baseline';
     }
   }
 
