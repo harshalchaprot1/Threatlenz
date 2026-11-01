@@ -86,25 +86,111 @@ interface PruningDecisionMeta {
       <div class="feature-glossary-panel">
         <div class="glossary-header">
           <span class="material-symbols-outlined glossary-icon">help_outline</span>
-          <span class="glossary-title">Network Telemetry Terminology Guide</span>
+          <span class="glossary-title">Network Telemetry Terminology &amp; Redundancy Glossary</span>
         </div>
         <div class="glossary-items">
           <div class="glossary-item">
             <span class="glossary-term">Forward (fwd):</span>
-            <span class="glossary-desc">Packets or bytes transmitted from client source to destination server.</span>
+            <span class="glossary-desc">Packets or bytes transmitted from the recorded flow source (initiator) toward the destination.</span>
           </div>
           <div class="glossary-item">
             <span class="glossary-term">Backward (bwd):</span>
-            <span class="glossary-desc">Response packets or bytes sent from destination server back to client.</span>
+            <span class="glossary-desc">Packets or bytes transmitted in the reverse direction from destination back to source.</span>
           </div>
           <div class="glossary-item">
             <span class="glossary-term">Flow:</span>
-            <span class="glossary-desc">Bidirectional network session identified by 5-tuple (src IP, dst IP, src port, dst port, protocol).</span>
+            <span class="glossary-desc">Bidirectional network conversation identified by its 5-tuple (source IP, destination IP, source port, destination port, protocol).</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Packet Length:</span>
+            <span class="glossary-desc">Total packet length in bytes across the flow, calculated from the packet lengths observed by CICFlowMeter.</span>
           </div>
           <div class="glossary-item">
             <span class="glossary-term">Inter-Arrival Time (IAT):</span>
-            <span class="glossary-desc">Elapsed time in microseconds between consecutive packets within a flow direction.</span>
+            <span class="glossary-desc">Elapsed time in microseconds (&mu;s) between consecutive packet arrivals within a flow direction.</span>
           </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Pearson Correlation (r):</span>
+            <span class="glossary-desc">Linear relationship metric (-1 to +1). Values near 1.0 indicate strong collinearity; correlation does not imply causation.</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Feature Redundancy:</span>
+            <span class="glossary-desc">Statistical collinearity where two metrics convey duplicate information, potentially distorting decision tree splits.</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Pipeline Pruning:</span>
+            <span class="glossary-desc">Exclusion of redundant subflow duplicates from model input vectorization while preserving raw dataset integrity.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Why 63 Features Architecture Explanation -->
+      <div class="pipeline-derivation-panel">
+        <div class="derivation-header">
+          <div class="derivation-title-row">
+            <span class="material-symbols-outlined derivation-icon">account_tree</span>
+            <span class="derivation-title">Architecture Audit: Derivation of the 63-Feature Model Input</span>
+          </div>
+          <span class="derivation-subtitle">
+            Exact, verified feature selection progression from 80 raw CSV fields to 63 MLlib Random Forest features
+          </span>
+        </div>
+
+        <div class="derivation-flow-grid">
+          <div class="flow-step">
+            <div class="step-num">Stage 1</div>
+            <div class="step-label">Raw Benchmark Telemetry</div>
+            <div class="step-count">80 Columns</div>
+            <div class="step-desc">79 network flow metrics + 1 ground-truth string label (<code class="inline-code">Label</code>) across 8 CSV capture files.</div>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <div class="flow-step">
+            <div class="step-num">Stage 2</div>
+            <div class="step-label">ETL Curated Lakehouse</div>
+            <div class="step-count">83 Columns</div>
+            <div class="step-desc">+3 derived audit columns: <code class="inline-code">raw_label</code>, <code class="inline-code">timestamp_parsed</code>, and date partition key <code class="inline-code">event_date</code>.</div>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <div class="flow-step step-exclusion">
+            <div class="step-num">Stage 3</div>
+            <div class="step-label">Governance Exclusions</div>
+            <div class="step-count">-6 Columns</div>
+            <div class="step-desc">
+              <strong>4 Metadata/Targets:</strong> <code class="inline-code">timestamp</code>, <code class="inline-code">label</code>, <code class="inline-code">raw_label</code>, <code class="inline-code">event_date</code><br>
+              <strong>1 Shortcut Port:</strong> <code class="inline-code">dst_port</code> (synthetic testbed memorization)<br>
+              <strong>1 Quarantined Index:</strong> <code class="inline-code">label_idx</code> (target-label leakage elimination)
+            </div>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <div class="flow-step step-pruned">
+            <div class="step-num">Stage 4</div>
+            <div class="step-label">Variance &amp; Collinearity Pruning</div>
+            <div class="step-count">-14 Columns</div>
+            <div class="step-desc">
+              <strong>8 Constant Columns:</strong> 0 variance across all 7.23M flows (<code class="inline-code">bwd_psh_flags</code>, <code class="inline-code">bwd_urg_flags</code>, etc.)<br>
+              <strong>6 Redundant Subflows:</strong> Perfect collinear duplicates (|r| &ge; 0.999999) pruned to prevent tree distortion.
+            </div>
+          </div>
+
+          <div class="flow-arrow">&rarr;</div>
+
+          <div class="flow-step step-final">
+            <div class="step-num">Final</div>
+            <div class="step-label">Model Input Vector</div>
+            <div class="step-count">63 Features</div>
+            <div class="step-desc">Leakage-excluded, zero-collinearity dense feature vector assembled for verified Random Forest evaluation.</div>
+          </div>
+        </div>
+
+        <div class="derivation-footer-math">
+          <strong>Mathematical Schema Progression:</strong>
+          <span class="math-expr">83 Lakehouse Columns - (5 Metadata/Label/Date + 1 Shortcut Port + 8 Constant + 6 Redundant Subflows) = <strong>63 Clean Features</strong></span>
         </div>
       </div>
 
@@ -147,13 +233,18 @@ interface PruningDecisionMeta {
                         <span class="feat-human-label">
                           {{ getHumanName(pair.feature_1) }}
                         </span>
-                        <span
-                          class="feat-tag font-mono"
-                          [class.pruned-feature]="isFeaturePruned(pair, pair.feature_1)"
-                          [attr.title]="getFeatureStatusTooltip(pair, pair.feature_1)"
-                        >
-                          {{ pair.feature_1 }}
-                        </span>
+                        <div class="feat-meta-row">
+                          <span class="feat-tag font-mono">
+                            {{ pair.feature_1 }}
+                          </span>
+                          <span
+                            class="pipeline-status-badge"
+                            [class.badge-pruned]="isFeaturePruned(pair, pair.feature_1)"
+                            [class.badge-retained]="!isFeaturePruned(pair, pair.feature_1)"
+                          >
+                            {{ isFeaturePruned(pair, pair.feature_1) ? 'Pruned from 63-Feature Pipeline' : 'Retained in 63-Feature Pipeline' }}
+                          </span>
+                        </div>
                       </div>
 
                       <span class="corr-arrow" title="Evaluated correlation relationship">&harr;</span>
@@ -163,13 +254,18 @@ interface PruningDecisionMeta {
                         <span class="feat-human-label">
                           {{ getHumanName(pair.feature_2) }}
                         </span>
-                        <span
-                          class="feat-tag font-mono"
-                          [class.pruned-feature]="isFeaturePruned(pair, pair.feature_2)"
-                          [attr.title]="getFeatureStatusTooltip(pair, pair.feature_2)"
-                        >
-                          {{ pair.feature_2 }}
-                        </span>
+                        <div class="feat-meta-row">
+                          <span class="feat-tag font-mono">
+                            {{ pair.feature_2 }}
+                          </span>
+                          <span
+                            class="pipeline-status-badge"
+                            [class.badge-pruned]="isFeaturePruned(pair, pair.feature_2)"
+                            [class.badge-retained]="!isFeaturePruned(pair, pair.feature_2)"
+                          >
+                            {{ isFeaturePruned(pair, pair.feature_2) ? 'Pruned from 63-Feature Pipeline' : 'Retained in 63-Feature Pipeline' }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -520,6 +616,143 @@ interface PruningDecisionMeta {
       line-height: 1.4;
     }
 
+    /* Derivation of 63 Features Panel */
+    .pipeline-derivation-panel {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .derivation-header {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .derivation-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .derivation-icon {
+      font-size: 18px;
+      color: var(--tl-cyan, #06B6D4);
+    }
+
+    .derivation-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tl-text-primary, #F8FAFC);
+    }
+
+    .derivation-subtitle {
+      font-size: 11.5px;
+      color: var(--tl-text-secondary, #94A3B8);
+    }
+
+    .derivation-flow-grid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .flow-step {
+      flex: 1;
+      min-width: 170px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      &.step-exclusion {
+        border-color: rgba(245, 158, 11, 0.25);
+        background: rgba(245, 158, 11, 0.04);
+        .step-count { color: #FCD34D; }
+      }
+
+      &.step-pruned {
+        border-color: rgba(239, 68, 68, 0.25);
+        background: rgba(239, 68, 68, 0.04);
+        .step-count { color: #FCA5A5; }
+      }
+
+      &.step-final {
+        border-color: rgba(6, 182, 212, 0.35);
+        background: rgba(6, 182, 212, 0.06);
+        .step-count { color: #67E8F9; font-weight: 800; }
+      }
+    }
+
+    .step-num {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--tl-text-muted, #64748B);
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tl-text-primary, #F8FAFC);
+    }
+
+    .step-count {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--tl-cyan, #06B6D4);
+    }
+
+    .step-desc {
+      font-size: 10.5px;
+      color: var(--tl-text-secondary, #94A3B8);
+      line-height: 1.4;
+
+      .inline-code {
+        font-family: monospace;
+        font-size: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 0 3px;
+        border-radius: 2px;
+        color: var(--tl-text-primary, #F8FAFC);
+      }
+    }
+
+    .flow-arrow {
+      color: var(--tl-text-muted, #64748B);
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .derivation-footer-math {
+      font-size: 11.5px;
+      color: var(--tl-text-secondary, #94A3B8);
+      background: rgba(15, 23, 42, 0.4);
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+
+      strong {
+        color: var(--tl-text-primary, #F8FAFC);
+      }
+
+      .math-expr {
+        font-family: monospace;
+        color: var(--tl-cyan, #06B6D4);
+        margin-left: 6px;
+      }
+    }
+
     /* Table Styles */
     .table-responsive {
       overflow-x: auto;
@@ -586,22 +819,42 @@ interface PruningDecisionMeta {
       line-height: 1.25;
     }
 
+    .feat-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .feat-tag {
       background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 1px 5px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 1px 6px;
       border-radius: 3px;
       font-size: 10.5px;
       color: var(--tl-cyan, #06B6D4);
       width: fit-content;
       transition: all 0.15s ease;
+    }
 
-      &.pruned-feature {
-        background: rgba(239, 68, 68, 0.12);
-        border-color: rgba(239, 68, 68, 0.3);
-        color: #FCA5A5;
-        text-decoration: line-through;
-        opacity: 0.85;
+    .pipeline-status-badge {
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+
+      &.badge-pruned {
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #FCD34D;
+      }
+
+      &.badge-retained {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        color: #6EE7B7;
       }
     }
 
@@ -826,9 +1079,9 @@ export class FeatureRedundancyTableComponent {
     subflow_fwd_pkts: 'Subflow Forward Packets',
     tot_bwd_pkts: 'Total Backward Packets',
     subflow_bwd_pkts: 'Subflow Backward Packets',
-    totlen_fwd_pkts: 'Total Forward Payload Bytes',
+    totlen_fwd_pkts: 'Total Length of Forward Packets',
     subflow_fwd_byts: 'Subflow Forward Bytes',
-    totlen_bwd_pkts: 'Total Backward Payload Bytes',
+    totlen_bwd_pkts: 'Total Length of Backward Packets',
     subflow_bwd_byts: 'Subflow Backward Bytes',
     fwd_pkt_len_mean: 'Mean Forward Packet Length',
     fwd_seg_size_avg: 'Average Forward Segment Size',
@@ -838,8 +1091,8 @@ export class FeatureRedundancyTableComponent {
     pkt_size_avg: 'Average Packet Size',
     flow_duration: 'Total Flow Duration',
     fwd_iat_tot: 'Total Forward Inter-Arrival Time',
-    flow_pkts_s: 'Flow Packet Rate (Packets/s)',
-    flow_byts_s: 'Flow Transfer Rate (Bytes/s)',
+    flow_pkts_s: 'Flow Packet Rate',
+    flow_byts_s: 'Flow Byte Rate',
   };
 
   getHumanName(featureKey: string): string {
@@ -913,24 +1166,27 @@ export class FeatureRedundancyTableComponent {
     pruned: string,
     retained: string
   ): string {
-    if (pruned.startsWith('subflow_')) {
-      return `Pruned redundant subflow counter to eliminate duplicate variance (|r| = ${pair.pearson_correlation.toFixed(4)}). Primary summary metric ${retained} is preserved.`;
+    if (pruned === 'subflow_fwd_pkts' || pruned === 'subflow_bwd_pkts') {
+      return `Pruned redundant subflow packet counter (${pruned}) to eliminate duplicate variance (|r| = ${pair.pearson_correlation.toFixed(4)}). Primary aggregate packet count (${retained}) is retained.`;
+    }
+    if (pruned === 'subflow_fwd_byts' || pruned === 'subflow_bwd_byts') {
+      return `Pruned redundant subflow byte counter (${pruned}) to eliminate duplicate variance (|r| = ${pair.pearson_correlation.toFixed(4)}). Primary total packet length (${retained}) is retained.`;
     }
     if (pruned.endsWith('_avg')) {
-      return `Pruned duplicate average segment calculation in favor of canonical mean ${retained} (|r| = 1.0000).`;
+      return `Pruned duplicate average segment size calculation (${pruned}) in favor of canonical mean packet length (${retained}) (|r| = 1.0000).`;
     }
-    return `Pruned collinear duplicate feature ${pruned} to avoid tree split distortion.`;
+    return `Pruned collinear duplicate feature (${pruned}) to prevent tree split distortion while retaining ${retained}.`;
   }
 
   private getRetentionReason(pair: EvaluatedCorrelationPair): string {
     if (pair.feature_1 === 'flow_pkts_s' && pair.feature_2 === 'flow_byts_s') {
-      return `Both features retained (|r| = 0.2830): low correlation indicates distinct independent signals (packet frequency vs byte volume).`;
+      return `Both features retained (|r| = 0.2830): weak linear correlation demonstrates independent signals (packet transmission rate vs byte throughput volume).`;
     }
     if (pair.feature_1 === 'flow_duration' && pair.feature_2 === 'fwd_iat_tot') {
-      return `Both features retained (|r| = 0.9957): total flow duration captures overall session window while forward IAT captures direction-specific transmission cadence.`;
+      return `Both features retained (|r| = 0.9957): total flow duration captures overall session lifetime, whereas forward IAT captures direction-specific transmission intervals.`;
     }
     if (pair.feature_1 === 'pkt_len_mean' && pair.feature_2 === 'pkt_size_avg') {
-      return `Both features retained (|r| = 0.9938): slight mathematical variance between mean packet length and average packet size across directions is monitored in tree importance.`;
+      return `Both features retained (|r| = 0.9938): distinct mathematical formulations (arithmetic packet length mean vs aggregate total bytes / total packets) provide complementary directional nuance.`;
     }
     return `Both features retained: distinct telemetry dimensions evaluated by the Random Forest model.`;
   }

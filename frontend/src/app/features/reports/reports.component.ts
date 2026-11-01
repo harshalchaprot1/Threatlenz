@@ -109,7 +109,7 @@ export type ReportTab = 'all' | 'ports' | 'redundancy' | 'mitre';
             [value]="verifiedMitreCount.toString()"
             subtitle="Netflow L4 boundary; host telemetry required"
             icon="verified_user"
-            badgeText="0 Verified (13 Candidate)"
+            badgeText="0 Verified Attribution"
             badgeType="default"
           ></app-stat-card>
         </div>
