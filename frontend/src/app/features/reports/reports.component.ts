@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -395,9 +396,16 @@ export class ReportsComponent implements OnInit {
   redundancyData: FeatureRedundancyResponse | null = null;
   mitreItems: MitreProfileSummaryItem[] = [];
 
-  constructor(private readonly apiService: ThreatLenzApiService) {}
+  constructor(
+    private readonly apiService: ThreatLenzApiService,
+    private readonly route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam && ['all', 'ports', 'redundancy', 'mitre'].includes(tabParam.toLowerCase())) {
+      this.activeTab = tabParam.toLowerCase() as ReportTab;
+    }
     this.loadReportsData();
   }
 

@@ -11,6 +11,7 @@ interface PruningDecisionMeta {
   isPruned: boolean;
   prunedFeature?: string;
   retainedFeature?: string;
+  reason: string;
 }
 
 @Component({
@@ -81,6 +82,32 @@ interface PruningDecisionMeta {
         </div>
       </div>
 
+      <!-- Feature Terminology Quick Glossary -->
+      <div class="feature-glossary-panel">
+        <div class="glossary-header">
+          <span class="material-symbols-outlined glossary-icon">help_outline</span>
+          <span class="glossary-title">Network Telemetry Terminology Guide</span>
+        </div>
+        <div class="glossary-items">
+          <div class="glossary-item">
+            <span class="glossary-term">Forward (fwd):</span>
+            <span class="glossary-desc">Packets or bytes transmitted from client source to destination server.</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Backward (bwd):</span>
+            <span class="glossary-desc">Response packets or bytes sent from destination server back to client.</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Flow:</span>
+            <span class="glossary-desc">Bidirectional network session identified by 5-tuple (src IP, dst IP, src port, dst port, protocol).</span>
+          </div>
+          <div class="glossary-item">
+            <span class="glossary-term">Inter-Arrival Time (IAT):</span>
+            <span class="glossary-desc">Elapsed time in microseconds between consecutive packets within a flow direction.</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Loading State -->
       @if (loading) {
         <div class="state-container">
@@ -103,33 +130,47 @@ interface PruningDecisionMeta {
           <table class="redundancy-table">
             <thead>
               <tr>
-                <th class="col-pair">Evaluated Pair</th>
-                <th class="col-desc">Pair Description</th>
+                <th class="col-pair">Evaluated Feature Pair</th>
+                <th class="col-desc">Pair Relationship</th>
                 <th class="col-pearson">Pearson r</th>
                 <th class="col-class">Classification</th>
-                <th class="col-status">63-Feature Pipeline Decision</th>
+                <th class="col-status">63-Feature Pipeline Decision &amp; Rationale</th>
               </tr>
             </thead>
             <tbody>
               @for (pair of filteredPairs; track pair.feature_1 + '-' + pair.feature_2) {
                 <tr [ngClass]="getRowClass(pair)">
                   <td class="features-cell">
-                    <div class="pair-features-group">
-                      <span
-                        class="feat-tag font-mono"
-                        [class.pruned-feature]="isFeaturePruned(pair, pair.feature_1)"
-                        [attr.title]="getFeatureStatusTooltip(pair, pair.feature_1)"
-                      >
-                        {{ pair.feature_1 }}
-                      </span>
-                      <span class="corr-arrow">&harr;</span>
-                      <span
-                        class="feat-tag font-mono"
-                        [class.pruned-feature]="isFeaturePruned(pair, pair.feature_2)"
-                        [attr.title]="getFeatureStatusTooltip(pair, pair.feature_2)"
-                      >
-                        {{ pair.feature_2 }}
-                      </span>
+                    <div class="pair-display-wrap">
+                      <!-- Feature 1 -->
+                      <div class="feature-unit">
+                        <span class="feat-human-label">
+                          {{ getHumanName(pair.feature_1) }}
+                        </span>
+                        <span
+                          class="feat-tag font-mono"
+                          [class.pruned-feature]="isFeaturePruned(pair, pair.feature_1)"
+                          [attr.title]="getFeatureStatusTooltip(pair, pair.feature_1)"
+                        >
+                          {{ pair.feature_1 }}
+                        </span>
+                      </div>
+
+                      <span class="corr-arrow" title="Evaluated correlation relationship">&harr;</span>
+
+                      <!-- Feature 2 -->
+                      <div class="feature-unit">
+                        <span class="feat-human-label">
+                          {{ getHumanName(pair.feature_2) }}
+                        </span>
+                        <span
+                          class="feat-tag font-mono"
+                          [class.pruned-feature]="isFeaturePruned(pair, pair.feature_2)"
+                          [attr.title]="getFeatureStatusTooltip(pair, pair.feature_2)"
+                        >
+                          {{ pair.feature_2 }}
+                        </span>
+                      </div>
                     </div>
                   </td>
 
@@ -168,13 +209,19 @@ interface PruningDecisionMeta {
                         <span class="status-subdetail">
                           Dropped <code>{{ getPipelineDecision(pair).prunedFeature }}</code>; retained <code>{{ getPipelineDecision(pair).retainedFeature }}</code>
                         </span>
+                        <span class="status-reason-text">
+                          {{ getPipelineDecision(pair).reason }}
+                        </span>
                       } @else {
                         <span class="status-pill retained-badge">
                           <span class="material-symbols-outlined status-icon">check_circle</span>
                           <span>Retained in 63-Feature Pipeline</span>
                         </span>
                         <span class="status-subdetail">
-                          Both features retained; monitored in tree feature importance
+                          Both features retained in 63-feature pipeline
+                        </span>
+                        <span class="status-reason-text">
+                          {{ getPipelineDecision(pair).reason }}
                         </span>
                       }
                     </div>
@@ -420,6 +467,59 @@ interface PruningDecisionMeta {
       }
     }
 
+    /* Terminology Glossary Panel */
+    .feature-glossary-panel {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--tl-border, rgba(255, 255, 255, 0.08));
+      border-left: 3px solid var(--tl-cyan, #06B6D4);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .glossary-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .glossary-icon {
+      font-size: 16px;
+      color: var(--tl-cyan, #06B6D4);
+    }
+
+    .glossary-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--tl-text-primary, #F8FAFC);
+    }
+
+    .glossary-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 8px 16px;
+    }
+
+    .glossary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 11.5px;
+    }
+
+    .glossary-term {
+      font-weight: 700;
+      color: var(--tl-cyan, #06B6D4);
+      font-size: 11px;
+    }
+
+    .glossary-desc {
+      color: var(--tl-text-secondary, #94A3B8);
+      line-height: 1.4;
+    }
+
     /* Table Styles */
     .table-responsive {
       overflow-x: auto;
@@ -460,26 +560,40 @@ interface PruningDecisionMeta {
       }
     }
 
-    .col-pair { min-width: 220px; }
-    .col-desc { min-width: 200px; }
+    .col-pair { min-width: 280px; }
+    .col-desc { min-width: 190px; }
     .col-pearson { width: 130px; }
     .col-class { width: 140px; }
-    .col-status { min-width: 280px; }
+    .col-status { min-width: 310px; }
 
-    .pair-features-group {
+    .pair-display-wrap {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .feature-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .feat-human-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--tl-text-primary, #F8FAFC);
+      line-height: 1.25;
     }
 
     .feat-tag {
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 10.5px;
       color: var(--tl-cyan, #06B6D4);
+      width: fit-content;
       transition: all 0.15s ease;
 
       &.pruned-feature {
@@ -493,7 +607,8 @@ interface PruningDecisionMeta {
 
     .corr-arrow {
       color: var(--tl-text-muted, #64748B);
-      font-size: 12px;
+      font-size: 14px;
+      padding: 0 2px;
     }
 
     .desc-cell {
@@ -608,6 +723,13 @@ interface PruningDecisionMeta {
       }
     }
 
+    .status-reason-text {
+      font-size: 11px;
+      color: var(--tl-text-secondary, #94A3B8);
+      line-height: 1.35;
+      margin-top: 2px;
+    }
+
     .font-mono {
       font-family: monospace;
     }
@@ -699,6 +821,31 @@ export class FeatureRedundancyTableComponent {
     'bwd_seg_size_avg',
   ]);
 
+  readonly humanFeatureNames: Record<string, string> = {
+    tot_fwd_pkts: 'Total Forward Packets',
+    subflow_fwd_pkts: 'Subflow Forward Packets',
+    tot_bwd_pkts: 'Total Backward Packets',
+    subflow_bwd_pkts: 'Subflow Backward Packets',
+    totlen_fwd_pkts: 'Total Forward Payload Bytes',
+    subflow_fwd_byts: 'Subflow Forward Bytes',
+    totlen_bwd_pkts: 'Total Backward Payload Bytes',
+    subflow_bwd_byts: 'Subflow Backward Bytes',
+    fwd_pkt_len_mean: 'Mean Forward Packet Length',
+    fwd_seg_size_avg: 'Average Forward Segment Size',
+    bwd_pkt_len_mean: 'Mean Backward Packet Length',
+    bwd_seg_size_avg: 'Average Backward Segment Size',
+    pkt_len_mean: 'Mean Packet Length',
+    pkt_size_avg: 'Average Packet Size',
+    flow_duration: 'Total Flow Duration',
+    fwd_iat_tot: 'Total Forward Inter-Arrival Time',
+    flow_pkts_s: 'Flow Packet Rate (Packets/s)',
+    flow_byts_s: 'Flow Transfer Rate (Bytes/s)',
+  };
+
+  getHumanName(featureKey: string): string {
+    return this.humanFeatureNames[featureKey] || featureKey;
+  }
+
   onFilterChange(f: CorrelationFilter): void {
     this.selectedFilter = f;
     this.applyFilter();
@@ -742,6 +889,7 @@ export class FeatureRedundancyTableComponent {
         isPruned: true,
         prunedFeature: pair.feature_1,
         retainedFeature: pair.feature_2,
+        reason: this.getPruningReason(pair, pair.feature_1, pair.feature_2),
       };
     } else if (!f1Pruned && f2Pruned) {
       return {
@@ -749,13 +897,42 @@ export class FeatureRedundancyTableComponent {
         isPruned: true,
         prunedFeature: pair.feature_2,
         retainedFeature: pair.feature_1,
+        reason: this.getPruningReason(pair, pair.feature_2, pair.feature_1),
       };
     } else {
       return {
         pipelineStatusText: 'Retained in 63-Feature Pipeline',
         isPruned: false,
+        reason: this.getRetentionReason(pair),
       };
     }
+  }
+
+  private getPruningReason(
+    pair: EvaluatedCorrelationPair,
+    pruned: string,
+    retained: string
+  ): string {
+    if (pruned.startsWith('subflow_')) {
+      return `Pruned redundant subflow counter to eliminate duplicate variance (|r| = ${pair.pearson_correlation.toFixed(4)}). Primary summary metric ${retained} is preserved.`;
+    }
+    if (pruned.endsWith('_avg')) {
+      return `Pruned duplicate average segment calculation in favor of canonical mean ${retained} (|r| = 1.0000).`;
+    }
+    return `Pruned collinear duplicate feature ${pruned} to avoid tree split distortion.`;
+  }
+
+  private getRetentionReason(pair: EvaluatedCorrelationPair): string {
+    if (pair.feature_1 === 'flow_pkts_s' && pair.feature_2 === 'flow_byts_s') {
+      return `Both features retained (|r| = 0.2830): low correlation indicates distinct independent signals (packet frequency vs byte volume).`;
+    }
+    if (pair.feature_1 === 'flow_duration' && pair.feature_2 === 'fwd_iat_tot') {
+      return `Both features retained (|r| = 0.9957): total flow duration captures overall session window while forward IAT captures direction-specific transmission cadence.`;
+    }
+    if (pair.feature_1 === 'pkt_len_mean' && pair.feature_2 === 'pkt_size_avg') {
+      return `Both features retained (|r| = 0.9938): slight mathematical variance between mean packet length and average packet size across directions is monitored in tree importance.`;
+    }
+    return `Both features retained: distinct telemetry dimensions evaluated by the Random Forest model.`;
   }
 
   getRowClass(pair: EvaluatedCorrelationPair): string {
