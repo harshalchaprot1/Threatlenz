@@ -69,6 +69,9 @@ export class ReliabilityBadgeComponent {
   @Input() reliability?: ModelReliability | string | null;
 
   getDisplayLabel(): string {
+    if (!this.reliability) {
+      return 'Baseline (N/A)';
+    }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
         return 'High Reliability';
@@ -78,12 +81,18 @@ export class ReliabilityBadgeComponent {
         return 'Unreliable (Excluded)';
       case 'NON_EVALUABLE':
         return 'Non-Evaluable';
+      case 'BASELINE_NOT_APPLICABLE':
+      case 'BASELINE':
+        return 'Baseline (N/A)';
       default:
-        return 'Not Evaluated';
+        return String(this.reliability);
     }
   }
 
   getIcon(): string {
+    if (!this.reliability) {
+      return 'verified_user';
+    }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
         return 'verified';
@@ -94,11 +103,14 @@ export class ReliabilityBadgeComponent {
       case 'NON_EVALUABLE':
         return 'block';
       default:
-        return 'radio_button_unchecked';
+        return 'verified_user';
     }
   }
 
   getBadgeClass(): string {
+    if (!this.reliability) {
+      return 'rel-none';
+    }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
         return 'rel-high';
@@ -114,6 +126,9 @@ export class ReliabilityBadgeComponent {
   }
 
   getTooltip(): string {
+    if (!this.reliability) {
+      return 'Benign baseline traffic profile (Evaluated as negative class baseline; category reliability tiers apply to attack models)';
+    }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
         return 'Validation support >= 100 and min(Precision, Recall, F1) >= 0.75';
@@ -124,7 +139,7 @@ export class ReliabilityBadgeComponent {
       case 'NON_EVALUABLE':
         return 'Zero validation support. Model cannot be evaluated on this category.';
       default:
-        return 'No model reliability assessment available.';
+        return 'Model reliability assessment.';
     }
   }
 }
