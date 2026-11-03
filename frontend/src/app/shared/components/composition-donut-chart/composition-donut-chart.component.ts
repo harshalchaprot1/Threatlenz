@@ -1,21 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import { ThreatProfileSummary } from '../../../core/models';
-
-interface Segment {
-  label: string;
-  count: number;
-  formattedCount: string;
-  percentage: number;
-  color: string;
-  dashArray: string;
-  dashOffset: number;
-}
 
 @Component({
   selector: 'app-composition-donut-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgxEchartsDirective],
   template: `
     <div class="donut-card">
       <div class="donut-header">
@@ -24,61 +16,16 @@ interface Segment {
       </div>
 
       <div class="donut-content">
-        <!-- SVG Donut Graphic -->
-        <div class="svg-wrapper">
-          <svg viewBox="0 0 160 160" class="donut-svg" aria-label="Traffic composition chart" role="img">
-            <!-- Background circle -->
-            <circle
-              cx="80"
-              cy="80"
-              r="60"
-              class="donut-bg-ring"
-              fill="transparent"
-              stroke-width="22"
-            />
+        <div
+          echarts
+          [options]="chartOptions"
+          class="donut-chart"
+          [style.height.px]="260"
+        ></div>
 
-            <!-- Data Segments -->
-            @for (seg of segments; track seg.label) {
-              <circle
-                cx="80"
-                cy="80"
-                r="60"
-                fill="transparent"
-                [attr.stroke]="seg.color"
-                stroke-width="22"
-                [attr.stroke-dasharray]="seg.dashArray"
-                [attr.stroke-dashoffset]="seg.dashOffset"
-                class="donut-segment"
-              />
-            }
-          </svg>
-
-          <!-- Centered Summary Text -->
-          <div class="donut-center-text">
-            <span class="center-val">{{ totalFormatted }}</span>
-            <span class="center-label">Total Flows</span>
-          </div>
-        </div>
-
-        <!-- Legend / Breakdown List -->
-        <div class="donut-legend">
-          @for (seg of segments; track seg.label) {
-            <div class="legend-row">
-              <div class="legend-left">
-                <span class="color-dot" [style.background-color]="seg.color"></span>
-                <span class="legend-name">{{ seg.label }}</span>
-              </div>
-              <div class="legend-right">
-                <span class="legend-count">{{ seg.formattedCount }}</span>
-                <span class="legend-pct">{{ seg.percentage.toFixed(1) }}%</span>
-              </div>
-            </div>
-          }
-
-          <div class="composition-note">
-            <span class="material-symbols-outlined note-icon">info</span>
-            <span>Accurate composition derived directly from evaluated campaign Netflow partitions.</span>
-          </div>
+        <div class="composition-note">
+          <span class="material-symbols-outlined note-icon">info</span>
+          <span>Accurate composition derived directly from evaluated campaign Netflow partitions.</span>
         </div>
       </div>
     </div>
@@ -120,118 +67,12 @@ interface Segment {
     .donut-content {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      flex: 1;
-      justify-content: space-around;
-    }
-
-    .svg-wrapper {
-      position: relative;
-      width: 220px;
-      height: 220px;
-      flex-shrink: 0;
-      margin: 8px auto;
-    }
-
-    .donut-svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      border-radius: 50%;
-    }
-
-    .donut-bg-ring {
-      stroke: rgba(255, 255, 255, 0.04);
-    }
-
-    .donut-segment {
-      transition: stroke-dasharray 0.4s ease;
-    }
-
-    .donut-center-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .center-val {
-      font-size: 20px;
-      font-weight: 700;
-      font-family: monospace;
-      color: var(--tl-text-primary);
-      line-height: 1.1;
-    }
-
-    .center-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: var(--tl-text-muted);
-      margin-top: 2px;
-    }
-
-    .donut-legend {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       gap: 12px;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      flex: 1;
     }
 
-    .legend-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .color-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .legend-name {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--tl-text-primary);
-    }
-
-    .legend-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .legend-count {
-      font-size: 12px;
-      font-family: monospace;
-      color: var(--tl-text-muted);
-    }
-
-    .legend-pct {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--tl-text-primary);
-      min-width: 44px;
-      text-align: right;
+    .donut-chart {
+      width: 100%;
     }
 
     .composition-note {
@@ -240,7 +81,6 @@ interface Segment {
       gap: 6px;
       font-size: 11px;
       color: var(--tl-text-muted);
-      margin-top: 4px;
       padding-top: 8px;
       border-top: 1px solid rgba(255, 255, 255, 0.04);
 
@@ -251,30 +91,25 @@ interface Segment {
     }
   `],
 })
-export class CompositionDonutChartComponent {
+export class CompositionDonutChartComponent implements OnChanges {
   @Input() title: string = 'Traffic Composition (Attack vs. Benign)';
   @Input() subtitle: string = 'Aggregate volume distribution across classified campaign flows';
-  @Input() set profiles(data: ThreatProfileSummary[]) {
-    this._profiles = data || [];
+  @Input() profiles: ThreatProfileSummary[] = [];
+
+  chartOptions: EChartsOption = {};
+
+  ngOnChanges(): void {
     this.recompute();
   }
 
-  private _profiles: ThreatProfileSummary[] = [];
-  segments: Segment[] = [];
-  totalFormatted: string = '0';
-
   private recompute(): void {
-    if (!this._profiles || this._profiles.length === 0) {
-      this.segments = [];
-      this.totalFormatted = '0';
-      return;
-    }
+    const data = this.profiles || [];
 
     let benignFlows = 0;
     let attackFlows = 0;
     let unknownFlows = 0;
 
-    for (const p of this._profiles) {
+    for (const p of data) {
       const count = p.flow_count || 0;
       if (p.attack_status === 'BENIGN') {
         benignFlows += count;
@@ -286,50 +121,72 @@ export class CompositionDonutChartComponent {
     }
 
     const total = benignFlows + attackFlows + unknownFlows;
-    this.totalFormatted = total > 1000000 ? (total / 1000000).toFixed(2) + 'M' : total.toLocaleString('en-US');
+    const totalLabel = total > 1000000
+      ? (total / 1000000).toFixed(2) + 'M'
+      : total.toLocaleString('en-US');
 
-    // Circumference of radius 60 circle = 2 * PI * 60 = 376.99
-    const circumference = 2 * Math.PI * 60;
-    let currentOffset = 0;
-
-    const rawSegments = [
-      {
-        label: 'Benign Baseline',
-        count: benignFlows,
-        color: '#10B981', // emerald
-      },
-      {
-        label: 'Adversarial Attacks',
-        count: attackFlows,
-        color: '#EF4444', // crimson
-      },
+    const seriesData = [
+      { value: benignFlows, name: 'Benign Baseline', itemStyle: { color: '#10B981' } },
+      { value: attackFlows, name: 'Adversarial Attacks', itemStyle: { color: '#EF4444' } },
+      ...(unknownFlows > 0
+        ? [{ value: unknownFlows, name: 'Unclassified / Unknown', itemStyle: { color: '#9CA3AF' } }]
+        : []),
     ];
 
-    if (unknownFlows > 0) {
-      rawSegments.push({
-        label: 'Unclassified / Unknown',
-        count: unknownFlows,
-        color: '#9CA3AF',
-      });
-    }
-
-    this.segments = rawSegments.map((item) => {
-      const pct = total > 0 ? (item.count / total) * 100 : 0;
-      const strokeLen = (pct / 100) * circumference;
-      const dashArray = `${strokeLen.toFixed(2)} ${(circumference - strokeLen).toFixed(2)}`;
-      const dashOffset = -currentOffset;
-      currentOffset += strokeLen;
-
-      return {
-        label: item.label,
-        count: item.count,
-        formattedCount: item.count.toLocaleString('en-US'),
-        percentage: pct,
-        color: item.color,
-        dashArray: dashArray,
-        dashOffset: dashOffset,
-      };
-    });
+    this.chartOptions = {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.12)',
+        textStyle: { color: '#F8FAFC', fontSize: 12 },
+        formatter: (params: any) => {
+          const pct = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0.0';
+          const count = (params.value as number).toLocaleString('en-US');
+          return `<strong>${params.name}</strong><br/>${count} flows (${pct}%)`;
+        },
+      },
+      legend: {
+        orient: 'vertical',
+        bottom: 0,
+        left: 'center',
+        textStyle: { color: '#94A3B8', fontSize: 11 },
+        itemWidth: 10,
+        itemHeight: 10,
+        icon: 'circle',
+      },
+      series: [
+        {
+          type: 'pie',
+          radius: ['45%', '68%'],
+          center: ['50%', '42%'],
+          avoidLabelOverlap: false,
+          label: {
+            show: true,
+            position: 'center',
+            formatter: () => `{total|${totalLabel}}\n{sub|Total Flows}`,
+            rich: {
+              total: {
+                fontSize: 18,
+                fontWeight: 700,
+                color: '#F8FAFC',
+                fontFamily: 'monospace',
+                lineHeight: 24,
+              },
+              sub: {
+                fontSize: 10,
+                color: '#64748B',
+              },
+            },
+          },
+          emphasis: {
+            label: { show: true },
+            itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.4)' },
+          },
+          labelLine: { show: false },
+          data: seriesData,
+        },
+      ],
+    };
   }
 }
-

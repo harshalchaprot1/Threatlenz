@@ -1,20 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import { TemporalDateSummary } from '../../../core/models';
-
-interface DayBarItem {
-  date: string;
-  formattedDate: string;
-  dayOfWeek: string;
-  totalFlows: number;
-  formattedFlows: string;
-  barHeightPct: number;
-}
 
 @Component({
   selector: 'app-captured-day-bar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgxEchartsDirective],
   template: `
     <div class="card-container">
       <div class="card-header">
@@ -37,46 +30,17 @@ interface DayBarItem {
           <span class="material-symbols-outlined error-icon">warning</span>
           <span class="state-label">{{ errorMessage }}</span>
         </div>
-      } @else if (bars.length === 0) {
+      } @else if (!chartOptions || !hasData) {
         <div class="state-box">
           <span class="state-label">No campaign date records available.</span>
         </div>
       } @else {
         <div class="chart-content">
-          <div class="chart-stage">
-            <!-- Reference Guidelines -->
-            <div class="grid-lines">
-              <div class="grid-line"><span class="line-label">1.0M</span></div>
-              <div class="grid-line"><span class="line-label">500K</span></div>
-              <div class="grid-line"><span class="line-label">0</span></div>
-            </div>
-
-            <!-- Vertical Bars for Each Captured Day -->
-            <div class="bars-container">
-              @for (bar of bars; track bar.date) {
-                <div class="bar-column" [title]="bar.date + ' (' + bar.dayOfWeek + '): ' + bar.formattedFlows + ' total flows'">
-                  <!-- Flow Value Label (Above Bar) -->
-                  <div class="bar-value-label">
-                    {{ formatCompactNumber(bar.totalFlows) }}
-                  </div>
-
-                  <!-- Bar Track & Fill -->
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill"
-                      [style.height.%]="bar.barHeightPct"
-                    ></div>
-                  </div>
-
-                  <!-- Date & Day Labels (Below Bar) -->
-                  <div class="bar-label-group">
-                    <span class="bar-date">{{ bar.formattedDate }}</span>
-                    <span class="bar-dow">{{ bar.dayOfWeek }}</span>
-                  </div>
-                </div>
-              }
-            </div>
-          </div>
+          <div
+            echarts
+            [options]="chartOptions"
+            class="day-bar-chart"
+          ></div>
 
           <div class="card-footer">
             <span class="footer-note">
@@ -157,9 +121,7 @@ interface DayBarItem {
       color: var(--tl-text-muted);
       font-size: 12px;
 
-      &.error {
-        color: #EF4444;
-      }
+      &.error { color: #EF4444; }
     }
 
     .chart-content {
@@ -169,135 +131,9 @@ interface DayBarItem {
       flex: 1;
     }
 
-    .chart-stage {
-      position: relative;
-      height: 250px;
-      display: flex;
-      align-items: flex-end;
-      padding-left: 42px;
-      padding-bottom: 30px;
-    }
-
-    .grid-lines {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 30px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-
-    .grid-line {
+    .day-bar-chart {
       width: 100%;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
-      position: relative;
-
-      .line-label {
-        position: absolute;
-        left: 0;
-        top: -8px;
-        font-size: 10px;
-        font-family: monospace;
-        color: var(--tl-text-muted);
-      }
-    }
-
-    .bars-container {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 16px;
-      align-items: flex-end;
-      position: relative;
-      z-index: 2;
-
-      @media (max-width: 600px) {
-        gap: 6px;
-      }
-    }
-
-    .bar-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100%;
-      justify-content: flex-end;
-      cursor: pointer;
-
-      &:hover {
-        .bar-fill {
-          background: #38BDF8;
-        }
-        .bar-value-label {
-          color: var(--tl-cyan, #06B6D4);
-        }
-      }
-    }
-
-    .bar-value-label {
-      font-size: 11px;
-      font-family: monospace;
-      font-weight: 600;
-      color: var(--tl-text-muted);
-      margin-bottom: 6px;
-      transition: color 0.12s ease;
-      text-align: center;
-      white-space: nowrap;
-
-      @media (max-width: 640px) {
-        font-size: 9px;
-      }
-    }
-
-    .bar-track {
-      width: 100%;
-      max-width: 48px;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 3px 3px 0 0;
-      display: flex;
-      align-items: flex-end;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      width: 100%;
-      border-radius: 3px 3px 0 0;
-      background: #0284C7;
-      transition: height 0.3s ease;
-    }
-
-    .bar-label-group {
-      position: absolute;
-      bottom: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-      transform: translateY(100%);
-    }
-
-    .bar-date {
-      font-size: 11px;
-      font-family: monospace;
-      font-weight: 600;
-      color: var(--tl-text-primary);
-      white-space: nowrap;
-
-      @media (max-width: 640px) {
-        font-size: 9px;
-      }
-    }
-
-    .bar-dow {
-      font-size: 9px;
-      color: var(--tl-text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+      height: 260px;
     }
 
     .card-footer {
@@ -319,64 +155,109 @@ interface DayBarItem {
     }
   `],
 })
-export class CapturedDayBarComponent {
+export class CapturedDayBarComponent implements OnChanges {
   @Input() title: string = 'Campaign Captured-Day Flow Volume';
   @Input() subtitle: string = 'Daily traffic volume across all 8 non-contiguous observation dates in CSE-CIC-IDS2018';
   @Input() loading: boolean = false;
   @Input() errorMessage: string | null = null;
+  @Input() eventDateTotals: TemporalDateSummary[] | null | undefined = null;
 
-  @Input() set eventDateTotals(data: TemporalDateSummary[] | null | undefined) {
-    this._data = data || [];
+  chartOptions: EChartsOption = {};
+  hasData = false;
+
+  ngOnChanges(): void {
     this.recompute();
   }
 
-  private _data: TemporalDateSummary[] = [];
-  bars: DayBarItem[] = [];
-
-  formatCompactNumber(num: number): string {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(2) + 'M';
-    }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(0) + 'K';
-    }
+  private formatCompact(num: number): string {
+    if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
     return num.toString();
   }
 
   private recompute(): void {
-    if (!this._data || this._data.length === 0) {
-      this.bars = [];
+    const raw = this.eventDateTotals || [];
+    if (!raw.length) {
+      this.hasData = false;
+      this.chartOptions = {};
       return;
     }
 
-    // Sort chronologically by ISO date string
-    const sorted = [...this._data].sort((a, b) => a.event_date.localeCompare(b.event_date));
-    const maxFlow = Math.max(...sorted.map((d) => d.total_flows), 1);
+    this.hasData = true;
 
-    this.bars = sorted.map((d) => {
-      // Parse ISO date string (YYYY-MM-DD)
+    // Sort chronologically
+    const sorted = [...raw].sort((a, b) => a.event_date.localeCompare(b.event_date));
+
+    const labels = sorted.map(d => {
       const parts = d.event_date.split('-');
-      const month = parts[1] || '02';
-      const day = parts[2] || '01';
-      const formattedDate = `${month}/${day}`;
-
-      // Calculate Day of Week
       const dateObj = new Date(d.event_date + 'T00:00:00Z');
-      const dayOfWeek = isNaN(dateObj.getTime())
+      const dow = isNaN(dateObj.getTime())
         ? ''
         : dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
-
-      const heightPct = Math.min(Math.max((d.total_flows / maxFlow) * 100, 2), 100);
-
-      return {
-        date: d.event_date,
-        formattedDate,
-        dayOfWeek,
-        totalFlows: d.total_flows,
-        formattedFlows: d.total_flows.toLocaleString('en-US'),
-        barHeightPct: heightPct,
-      };
+      return `${parts[1]}/${parts[2]}\n${dow}`;
     });
+
+    const values = sorted.map(d => d.total_flows);
+
+    this.chartOptions = {
+      backgroundColor: 'transparent',
+      grid: { left: 55, right: 16, top: 30, bottom: 48 },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.12)',
+        textStyle: { color: '#F8FAFC', fontSize: 12 },
+        formatter: (params: any) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          const d = sorted[p.dataIndex];
+          return `<strong>${d.event_date}</strong><br/>${d.total_flows.toLocaleString('en-US')} total flows`;
+        },
+      },
+      xAxis: {
+        type: 'category',
+        data: labels,
+        axisLabel: {
+          color: '#94A3B8',
+          fontSize: 10,
+          lineHeight: 14,
+          interval: 0,
+        },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          color: '#64748B',
+          fontSize: 10,
+          fontFamily: 'monospace',
+          formatter: (val: number) => this.formatCompact(val),
+        },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } },
+        axisLine: { show: false },
+      },
+      series: [
+        {
+          type: 'bar',
+          data: values.map(v => ({
+            value: v,
+            itemStyle: { color: '#0284C7', borderRadius: [3, 3, 0, 0] },
+          })),
+          barMaxWidth: 48,
+          label: {
+            show: true,
+            position: 'top',
+            color: '#64748B',
+            fontSize: 10,
+            fontFamily: 'monospace',
+            formatter: (p: any) => this.formatCompact(p.value as number),
+          },
+          emphasis: {
+            itemStyle: { color: '#38BDF8' },
+            label: { color: '#06B6D4' },
+          },
+        },
+      ],
+    };
   }
 }
-

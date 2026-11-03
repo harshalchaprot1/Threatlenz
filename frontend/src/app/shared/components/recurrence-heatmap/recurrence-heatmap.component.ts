@@ -1,21 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import { ThreatProfileSummary } from '../../../core/models';
-
-interface RecurrenceItem {
-  label: string;
-  activeUnits: number;
-  totalUnits: number;
-  ratio: number;
-  ratioPct: number;
-  isAttack: boolean;
-  statusBadge: string;
-}
 
 @Component({
   selector: 'app-recurrence-heatmap',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgxEchartsDirective],
   template: `
     <div class="recurrence-card">
       <div class="recurrence-header">
@@ -29,43 +21,18 @@ interface RecurrenceItem {
         </div>
       </div>
 
-      <div class="recurrence-grid">
-        @for (item of items; track item.label) {
-          <div class="recurrence-item">
-            <div class="item-header">
-              <span class="item-name" [title]="item.label">{{ item.label }}</span>
-              <span class="unit-count">{{ item.activeUnits }} / {{ item.totalUnits }} d</span>
-            </div>
-
-            <!-- Heat blocks for H observation days -->
-            <div class="blocks-row">
-              @for (dayIndex of dayIndices; track dayIndex) {
-                <div
-                  class="day-block"
-                  [ngClass]="{
-                    'block-active-attack': dayIndex < item.activeUnits && item.isAttack,
-                    'block-active-benign': dayIndex < item.activeUnits && !item.isAttack,
-                    'block-inactive': dayIndex >= item.activeUnits
-                  }"
-                  [title]="'Observed in ' + item.activeUnits + ' of ' + item.totalUnits + ' campaign days'"
-                ></div>
-              }
-            </div>
-
-            <div class="item-footer">
-              <span class="recurrence-pct">{{ item.ratioPct.toFixed(1) }}% Persistence</span>
-              <span class="persistence-label" [ngClass]="getPersistenceClass(item.ratio)">
-                {{ getPersistenceLabel(item.ratio) }}
-              </span>
-            </div>
-          </div>
-        }
-      </div>
+      @if (hasData) {
+        <div
+          echarts
+          [options]="chartOptions"
+          class="heatmap-chart"
+        ></div>
+      }
 
       <div class="recurrence-footer">
         <span class="footer-note">
           <span class="material-symbols-outlined note-icon">schedule</span>
-          Recurrence ratio feeds directly into TLRS risk assessment formula: R = d / H (where H=8 observed campaign days).
+          Recurrence ratio feeds directly into TLRS risk assessment formula: R = d / H (where H={{ observationHorizon }} observed campaign days).
         </span>
       </div>
     </div>
@@ -128,101 +95,9 @@ interface RecurrenceItem {
       }
     }
 
-    .recurrence-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-    }
-
-    .recurrence-item {
-      background: rgba(255, 255, 255, 0.015);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 4px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .item-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .item-name {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--tl-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .unit-count {
-      font-size: 10px;
-      font-family: monospace;
-      color: var(--tl-text-muted);
-    }
-
-    .blocks-row {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 3px;
-      height: 8px;
-    }
-
-    .day-block {
-      border-radius: 2px;
-      height: 100%;
-
-      &.block-active-attack {
-        background: #EF4444;
-      }
-
-      &.block-active-benign {
-        background: #10B981;
-      }
-
-      &.block-inactive {
-        background: rgba(255, 255, 255, 0.05);
-      }
-    }
-
-    .item-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      font-size: 10px;
-    }
-
-    .recurrence-pct {
-      color: var(--tl-text-muted);
-    }
-
-    .persistence-label {
-      font-weight: 700;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-
-      &.p-continuous {
-        color: #10B981;
-      }
-
-      &.p-frequent {
-        color: #F59E0B;
-      }
-
-      &.p-intermittent {
-        color: var(--tl-cyan, #06B6D4);
-      }
-
-      &.p-single {
-        color: var(--tl-text-muted);
-      }
+    .heatmap-chart {
+      width: 100%;
+      height: 320px;
     }
 
     .recurrence-footer {
@@ -244,65 +119,131 @@ interface RecurrenceItem {
     }
   `],
 })
-export class RecurrenceHeatmapComponent {
+export class RecurrenceHeatmapComponent implements OnChanges {
   @Input() title: string = 'Campaign Temporal Recurrence & Persistence';
   @Input() subtitle: string = 'Active observation units across the 8-day CSE-CIC-IDS2018 campaign calendar';
-  @Input() set profiles(data: ThreatProfileSummary[]) {
-    this._profiles = data || [];
+  @Input() profiles: ThreatProfileSummary[] = [];
+
+  chartOptions: EChartsOption = {};
+  observationHorizon: number = 8;
+  hasData = false;
+
+  ngOnChanges(): void {
     this.recompute();
   }
 
-  private _profiles: ThreatProfileSummary[] = [];
-  items: RecurrenceItem[] = [];
-  observationHorizon: number = 8;
-  dayIndices: number[] = [0, 1, 2, 3, 4, 5, 6, 7];
-
-  getPersistenceLabel(ratio: number): string {
+  private getPersistenceLabel(ratio: number): string {
     if (ratio >= 0.8) return 'Continuous';
     if (ratio >= 0.5) return 'Frequent';
     if (ratio >= 0.25) return 'Intermittent';
     return 'Sparse';
   }
 
-  getPersistenceClass(ratio: number): string {
-    if (ratio >= 0.8) return 'p-continuous';
-    if (ratio >= 0.5) return 'p-frequent';
-    if (ratio >= 0.25) return 'p-intermittent';
-    return 'p-single';
-  }
-
   private recompute(): void {
-    if (!this._profiles || this._profiles.length === 0) {
-      this.items = [];
+    const data = this.profiles || [];
+    if (!data.length) {
+      this.hasData = false;
+      this.chartOptions = {};
       return;
     }
 
-    this.observationHorizon = this._profiles[0]?.recurrence_denominator || 8;
-    this.dayIndices = Array.from({ length: this.observationHorizon }, (_, i) => i);
+    this.hasData = true;
+    this.observationHorizon = data[0]?.recurrence_denominator || 8;
+    const H = this.observationHorizon;
 
-    // Sort: attacks first, descending active observation units
-    const sorted = [...this._profiles].sort((a, b) => {
+    // Sort: attacks first, then descending active days
+    const sorted = [...data].sort((a, b) => {
       if (a.attack_status !== b.attack_status) {
         return a.attack_status === 'ATTACK' ? -1 : 1;
       }
       return (b.active_observation_units || 0) - (a.active_observation_units || 0);
     });
 
-    this.items = sorted.map((p) => {
-      const units = p.active_observation_units || 0;
-      const denom = p.recurrence_denominator || this.observationHorizon;
-      const ratio = p.recurrence_ratio !== undefined ? p.recurrence_ratio : denom > 0 ? units / denom : 0;
+    const categoryLabels = sorted.map(p => p.canonical_label);
+    const dayLabels = Array.from({ length: H }, (_, i) => `D${i + 1}`);
 
+    // Build heatmap data: [dayIndex, categoryIndex, active(0/1), isAttack]
+    const heatData: [number, number, number][] = [];
+    sorted.forEach((p, catIdx) => {
+      const activeDays = p.active_observation_units || 0;
+      for (let d = 0; d < H; d++) {
+        heatData.push([d, catIdx, d < activeDays ? 1 : 0]);
+      }
+    });
+
+    // Per-item colour based on attack status
+    const seriesData = heatData.map(([d, c, active]) => {
+      const isAttack = sorted[c]?.attack_status === 'ATTACK';
       return {
-        label: p.canonical_label,
-        activeUnits: units,
-        totalUnits: denom,
-        ratio: ratio,
-        ratioPct: ratio * 100,
-        isAttack: p.attack_status === 'ATTACK',
-        statusBadge: p.attack_status,
+        value: [d, c, active],
+        itemStyle: {
+          color: active === 1
+            ? (isAttack ? '#EF4444' : '#10B981')
+            : 'rgba(255,255,255,0.04)',
+          borderRadius: 2,
+          borderWidth: 1,
+          borderColor: 'rgba(0,0,0,0.25)',
+        },
       };
     });
+
+    this.chartOptions = {
+      backgroundColor: 'transparent',
+      grid: { left: 130, right: 90, top: 8, bottom: 24 },
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.12)',
+        textStyle: { color: '#F8FAFC', fontSize: 12 },
+        formatter: (params: any) => {
+          const [d, c, active] = params.value as [number, number, number];
+          const p = sorted[c];
+          if (!p) return '';
+          const units = p.active_observation_units || 0;
+          const denom = p.recurrence_denominator || H;
+          const ratio = denom > 0 ? units / denom : 0;
+          const pct = (ratio * 100).toFixed(1);
+          const persistence = this.getPersistenceLabel(ratio);
+          return [
+            `<strong>${p.canonical_label}</strong>`,
+            `Active: ${units} / ${denom} days (${pct}% persistence)`,
+            `Status: <span style="color:${active ? (p.attack_status === 'ATTACK' ? '#F87171' : '#34D399') : '#64748B'}">${active ? 'Active' : 'Inactive'} on Day ${d + 1}</span>`,
+            `Persistence: ${persistence}`,
+          ].join('<br/>');
+        },
+      },
+      xAxis: {
+        type: 'category',
+        data: dayLabels,
+        axisLabel: { color: '#64748B', fontSize: 10 },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+        axisTick: { show: false },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: 'category',
+        data: categoryLabels,
+        axisLabel: {
+          color: '#CBD5E1',
+          fontSize: 11,
+          width: 120,
+          overflow: 'truncate',
+        },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+        axisTick: { show: false },
+        splitLine: { show: false },
+      },
+      series: [
+        {
+          type: 'heatmap',
+          data: seriesData as any,
+          itemStyle: { borderRadius: 2 },
+          emphasis: {
+            itemStyle: { shadowBlur: 6, shadowColor: 'rgba(0,0,0,0.4)' },
+          },
+          label: { show: false },
+        },
+      ],
+    };
   }
 }
-

@@ -2,6 +2,7 @@ import { ApplicationConfig, LOCALE_ID, provideZoneChangeDetection } from '@angul
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideEchartsCore } from 'ngx-echarts';
 
 import { routes } from './app.routes';
 
@@ -12,5 +13,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch()),
     provideAnimationsAsync(),
+    provideEchartsCore({
+      echarts: () => import('./core/echarts-custom'),
+    }),
   ],
 };

@@ -1,19 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgxEchartsDirective } from 'ngx-echarts';
+import type { EChartsOption } from 'echarts';
 import { FeatureImportanceItem } from '../../../core/models';
-
-interface RenderedFeatureItem {
-  featureName: string;
-  cleanName: string;
-  importance: number;
-  percentage: number;
-  barWidthPct: number;
-}
 
 @Component({
   selector: 'app-feature-importance-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgxEchartsDirective],
   template: `
     <div class="fi-card">
       <div class="fi-header">
@@ -36,39 +30,17 @@ interface RenderedFeatureItem {
           <span class="material-symbols-outlined error-icon">warning</span>
           <span class="state-label">{{ errorMessage }}</span>
         </div>
-      } @else if (items.length === 0) {
+      } @else if (!hasData) {
         <div class="state-box">
           <span class="state-label">No feature importance data available.</span>
         </div>
       } @else {
         <div class="fi-content">
-          <div class="bars-container">
-            @for (item of items; track item.featureName; let i = $index) {
-              <div class="fi-row" [title]="item.cleanName + ': ' + item.importance.toFixed(6) + ' (' + item.percentage.toFixed(2) + '%)'">
-                <!-- Rank & Feature Name Column -->
-                <div class="label-col">
-                  <span class="rank-badge">#{{ i + 1 }}</span>
-                  <span class="feature-name font-mono" [title]="item.cleanName">{{ item.cleanName }}</span>
-                </div>
-
-                <!-- Bar Track Column -->
-                <div class="track-col">
-                  <div class="bar-track">
-                    <div
-                      class="bar-fill"
-                      [style.width.%]="item.barWidthPct"
-                    ></div>
-                  </div>
-                </div>
-
-                <!-- Value Metrics Column -->
-                <div class="metrics-col">
-                  <span class="metric-val font-mono">{{ item.importance.toFixed(4) }}</span>
-                  <span class="metric-pct font-mono">({{ item.percentage.toFixed(1) }}%)</span>
-                </div>
-              </div>
-            }
-          </div>
+          <div
+            echarts
+            [options]="chartOptions"
+            class="fi-chart"
+          ></div>
 
           <div class="fi-footer">
             <span class="footer-note">
@@ -132,9 +104,7 @@ interface RenderedFeatureItem {
       font-size: 11px;
       font-weight: 600;
 
-      .badge-icon {
-        font-size: 14px;
-      }
+      .badge-icon { font-size: 14px; }
     }
 
     .state-box {
@@ -146,9 +116,7 @@ interface RenderedFeatureItem {
       color: var(--tl-text-muted);
       font-size: 12px;
 
-      &.error {
-        color: #EF4444;
-      }
+      &.error { color: #EF4444; }
     }
 
     .fi-content {
@@ -157,97 +125,9 @@ interface RenderedFeatureItem {
       gap: 14px;
     }
 
-    .bars-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .fi-row {
-      display: grid;
-      grid-template-columns: 220px 1fr 120px;
-      align-items: center;
-      gap: 16px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.015);
-      border: 1px solid rgba(255, 255, 255, 0.03);
-      transition: background 0.15s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.04);
-
-        .feature-name {
-          color: var(--tl-cyan, #06B6D4);
-        }
-      }
-
-      @media (max-width: 768px) {
-        grid-template-columns: 150px 1fr 90px;
-        gap: 10px;
-      }
-    }
-
-    .label-col {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      overflow: hidden;
-    }
-
-    .rank-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--tl-text-muted);
-      font-family: monospace;
-      min-width: 20px;
-    }
-
-    .feature-name {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--tl-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: color 0.15s ease;
-    }
-
-    .track-col {
+    .fi-chart {
       width: 100%;
-    }
-
-    .bar-track {
-      width: 100%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 5px;
-      overflow: hidden;
-    }
-
-    .bar-fill {
-      height: 100%;
-      border-radius: 5px;
-      background: linear-gradient(90deg, #10B981, #06B6D4);
-      transition: width 0.3s ease;
-    }
-
-    .metrics-col {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 6px;
-    }
-
-    .metric-val {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--tl-text-primary);
-    }
-
-    .metric-pct {
-      font-size: 11px;
-      color: var(--tl-text-muted);
+      height: 320px;
     }
 
     .fi-footer {
@@ -267,53 +147,120 @@ interface RenderedFeatureItem {
         color: var(--tl-emerald, #10B981);
         margin-top: 1px;
       }
-
-      code {
-        background: rgba(255, 255, 255, 0.06);
-        padding: 1px 4px;
-        border-radius: 3px;
-        color: var(--tl-cyan, #06B6D4);
-      }
     }
   `],
 })
-export class FeatureImportanceChartComponent {
+export class FeatureImportanceChartComponent implements OnChanges {
   @Input() title: string = 'Random Forest Feature Importance (Top 10)';
   @Input() subtitle: string = 'Relative Gini feature importances evaluated on leakage-excluded statistical flow features';
   @Input() loading: boolean = false;
   @Input() errorMessage: string | null = null;
+  @Input() featureImportances: FeatureImportanceItem[] | null | undefined = null;
 
-  @Input() set featureImportances(data: FeatureImportanceItem[] | null | undefined) {
-    this._data = data || [];
+  chartOptions: EChartsOption = {};
+  hasData = false;
+
+  ngOnChanges(): void {
     this.recompute();
   }
 
-  private _data: FeatureImportanceItem[] = [];
-  items: RenderedFeatureItem[] = [];
-
   private recompute(): void {
-    if (!this._data || this._data.length === 0) {
-      this.items = [];
+    const data = this.featureImportances || [];
+    if (!data.length) {
+      this.hasData = false;
+      this.chartOptions = {};
       return;
     }
 
-    // Sort descending by importance
-    const sorted = [...this._data].sort((a, b) => b.importance - a.importance);
-    const maxVal = sorted[0]?.importance || 1;
-    const totalImp = sorted.reduce((sum, f) => sum + f.importance, 0);
+    this.hasData = true;
 
-    this.items = sorted.map((f) => {
-      const pct = totalImp > 0 ? (f.importance / totalImp) * 100 : 0;
-      const barWidth = maxVal > 0 ? (f.importance / maxVal) * 100 : 0;
+    // Sort descending by importance, take top 10
+    const sorted = [...data]
+      .sort((a, b) => b.importance - a.importance)
+      .slice(0, 10);
 
-      return {
-        featureName: f.feature_name,
-        cleanName: f.clean_feature_name,
-        importance: f.importance,
-        percentage: pct,
-        barWidthPct: Math.min(Math.max(barWidth, 2), 100),
-      };
-    });
+    const totalImp = sorted.reduce((s, f) => s + f.importance, 0);
+    const labels = sorted.map((f, i) => `#${i + 1} ${f.clean_feature_name}`).reverse();
+    const values = sorted.map(f => f.importance).reverse();
+    const percentages = sorted.map(f =>
+      totalImp > 0 ? (f.importance / totalImp) * 100 : 0
+    ).reverse();
+
+    this.chartOptions = {
+      backgroundColor: 'transparent',
+      grid: { left: 180, right: 100, top: 8, bottom: 8 },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'none' },
+        backgroundColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.12)',
+        textStyle: { color: '#F8FAFC', fontSize: 12 },
+        formatter: (params: any) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          const idx = sorted.length - 1 - p.dataIndex;
+          const f = sorted[idx];
+          const pct = percentages[p.dataIndex];
+          return `<strong>${f.clean_feature_name}</strong><br/>Importance: ${f.importance.toFixed(6)}<br/>Share: ${pct.toFixed(1)}%`;
+        },
+      },
+      xAxis: {
+        type: 'value',
+        axisLabel: {
+          color: '#64748B',
+          fontSize: 10,
+          formatter: (val: number) => val.toFixed(3),
+        },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)' } },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+      },
+      yAxis: {
+        type: 'category',
+        data: labels,
+        axisLabel: {
+          color: '#CBD5E1',
+          fontSize: 11,
+          width: 170,
+          overflow: 'truncate',
+          fontFamily: 'monospace',
+        },
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } },
+        axisTick: { show: false },
+      },
+      series: [
+        {
+          type: 'bar',
+          data: values.map((v, i) => ({
+            value: v,
+            itemStyle: {
+              color: {
+                type: 'linear',
+                x: 0, y: 0, x2: 1, y2: 0,
+                colorStops: [
+                  { offset: 0, color: '#10B981' },
+                  { offset: 1, color: '#06B6D4' },
+                ],
+              } as any,
+              borderRadius: [0, 3, 3, 0],
+            },
+          })),
+          barMaxWidth: 18,
+          label: {
+            show: true,
+            position: 'right',
+            color: '#94A3B8',
+            fontSize: 10,
+            fontFamily: 'monospace',
+            formatter: (p: any) => {
+              const imp = p.value as number;
+              const pct = percentages[p.dataIndex];
+              return `${imp.toFixed(4)}  (${pct.toFixed(1)}%)`;
+            },
+          },
+          emphasis: {
+            itemStyle: { opacity: 0.8 },
+          },
+        },
+      ],
+    };
   }
 }
-
