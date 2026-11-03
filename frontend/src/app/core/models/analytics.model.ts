@@ -135,5 +135,25 @@ export interface FeatureRedundancyResponse {
   all_evaluated_correlations: EvaluatedCorrelationPair[];
 }
 
+// 5. Full 63-Feature Importance Models
+export interface RankedFeatureImportanceItem {
+  feature_name: string;
+  clean_feature_name: string;
+  training_index: number;
+  importance: number;
+  rank: number;
+}
+
+export interface AllFeatureImportancesResponse {
+  artifact_name: string;
+  model_artifact: string;
+  feature_count: number;
+  feature_ordering: string;
+  importance_method: string;
+  governance_notice: string;
+  all_feature_importances: RankedFeatureImportanceItem[];
+}
+
 type float = number;
+
 

@@ -150,3 +150,25 @@ class FeatureRedundancyResponse(BaseModel):
     redundant_pairs_count: int
     all_evaluated_correlations: List[EvaluatedCorrelationPair]
 
+
+# 5. Full 63-Feature Importance Schemas
+class RankedFeatureImportanceItem(BaseModel):
+    """Detailed feature importance item with rank and training index."""
+    feature_name: str
+    clean_feature_name: str
+    training_index: int
+    importance: float
+    rank: int
+
+
+class AllFeatureImportancesResponse(BaseModel):
+    """All 63 Random Forest feature importances extracted from the evaluation model artifact."""
+    artifact_name: str
+    model_artifact: str
+    feature_count: int
+    feature_ordering: str
+    importance_method: str
+    governance_notice: str
+    all_feature_importances: List[RankedFeatureImportanceItem]
+
+

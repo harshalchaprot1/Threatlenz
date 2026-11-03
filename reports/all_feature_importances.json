@@ -1,0 +1,451 @@
+{
+  "artifact_name": "all_feature_importances",
+  "model_artifact": "models/clean_per_class_rf/model",
+  "feature_count": 63,
+  "feature_ordering": "Sorted descending by importance (rank 1 = highest)",
+  "importance_method": "Spark RandomForestClassificationModel.featureImportances \u2014 weighted Gini impurity reduction per split, normalized per-tree, averaged across 30 trees to sum to 1.0.",
+  "governance_notice": "Extracted directly from the clean Random Forest evaluation benchmark artifact. Model remains quarantined under governance policy. Does not imply operational causation.",
+  "all_feature_importances": [
+    {
+      "feature_name": "init_fwd_win_byts__imp",
+      "clean_feature_name": "init_fwd_win_byts",
+      "training_index": 50,
+      "importance": 0.09027601,
+      "rank": 1
+    },
+    {
+      "feature_name": "fwd_seg_size_min__imp",
+      "clean_feature_name": "fwd_seg_size_min",
+      "training_index": 53,
+      "importance": 0.06776528,
+      "rank": 2
+    },
+    {
+      "feature_name": "flow_duration__imp",
+      "clean_feature_name": "flow_duration",
+      "training_index": 0,
+      "importance": 0.05751427,
+      "rank": 3
+    },
+    {
+      "feature_name": "fwd_header_len__imp",
+      "clean_feature_name": "fwd_header_len",
+      "training_index": 31,
+      "importance": 0.05454144,
+      "rank": 4
+    },
+    {
+      "feature_name": "flow_iat_mean__imp",
+      "clean_feature_name": "flow_iat_mean",
+      "training_index": 15,
+      "importance": 0.04851789,
+      "rank": 5
+    },
+    {
+      "feature_name": "bwd_pkts_s__imp",
+      "clean_feature_name": "bwd_pkts_s",
+      "training_index": 34,
+      "importance": 0.04416614,
+      "rank": 6
+    },
+    {
+      "feature_name": "flow_iat_max__imp",
+      "clean_feature_name": "flow_iat_max",
+      "training_index": 17,
+      "importance": 0.036029,
+      "rank": 7
+    },
+    {
+      "feature_name": "fwd_iat_tot__imp",
+      "clean_feature_name": "fwd_iat_tot",
+      "training_index": 19,
+      "importance": 0.03297417,
+      "rank": 8
+    },
+    {
+      "feature_name": "init_bwd_win_byts__imp",
+      "clean_feature_name": "init_bwd_win_byts",
+      "training_index": 51,
+      "importance": 0.03267356,
+      "rank": 9
+    },
+    {
+      "feature_name": "flow_pkts_s__imp",
+      "clean_feature_name": "flow_pkts_s",
+      "training_index": 14,
+      "importance": 0.02993473,
+      "rank": 10
+    },
+    {
+      "feature_name": "fwd_act_data_pkts__imp",
+      "clean_feature_name": "fwd_act_data_pkts",
+      "training_index": 52,
+      "importance": 0.02973128,
+      "rank": 11
+    },
+    {
+      "feature_name": "fwd_iat_min__imp",
+      "clean_feature_name": "fwd_iat_min",
+      "training_index": 23,
+      "importance": 0.02954697,
+      "rank": 12
+    },
+    {
+      "feature_name": "tot_fwd_pkts__imp",
+      "clean_feature_name": "tot_fwd_pkts",
+      "training_index": 1,
+      "importance": 0.02914188,
+      "rank": 13
+    },
+    {
+      "feature_name": "flow_iat_min__imp",
+      "clean_feature_name": "flow_iat_min",
+      "training_index": 18,
+      "importance": 0.02789488,
+      "rank": 14
+    },
+    {
+      "feature_name": "fwd_pkts_s__imp",
+      "clean_feature_name": "fwd_pkts_s",
+      "training_index": 33,
+      "importance": 0.02759477,
+      "rank": 15
+    },
+    {
+      "feature_name": "totlen_fwd_pkts__imp",
+      "clean_feature_name": "totlen_fwd_pkts",
+      "training_index": 3,
+      "importance": 0.02414047,
+      "rank": 16
+    },
+    {
+      "feature_name": "fwd_iat_max__imp",
+      "clean_feature_name": "fwd_iat_max",
+      "training_index": 22,
+      "importance": 0.02371712,
+      "rank": 17
+    },
+    {
+      "feature_name": "fwd_iat_mean__imp",
+      "clean_feature_name": "fwd_iat_mean",
+      "training_index": 20,
+      "importance": 0.02252971,
+      "rank": 18
+    },
+    {
+      "feature_name": "pkt_len_std__imp",
+      "clean_feature_name": "pkt_len_std",
+      "training_index": 38,
+      "importance": 0.01805728,
+      "rank": 19
+    },
+    {
+      "feature_name": "bwd_pkt_len_max__imp",
+      "clean_feature_name": "bwd_pkt_len_max",
+      "training_index": 9,
+      "importance": 0.01789819,
+      "rank": 20
+    },
+    {
+      "feature_name": "bwd_pkt_len_mean__imp",
+      "clean_feature_name": "bwd_pkt_len_mean",
+      "training_index": 11,
+      "importance": 0.01597264,
+      "rank": 21
+    },
+    {
+      "feature_name": "bwd_header_len__imp",
+      "clean_feature_name": "bwd_header_len",
+      "training_index": 32,
+      "importance": 0.01594596,
+      "rank": 22
+    },
+    {
+      "feature_name": "rst_flag_cnt__imp",
+      "clean_feature_name": "rst_flag_cnt",
+      "training_index": 42,
+      "importance": 0.01527766,
+      "rank": 23
+    },
+    {
+      "feature_name": "flow_iat_std__imp",
+      "clean_feature_name": "flow_iat_std",
+      "training_index": 16,
+      "importance": 0.01395455,
+      "rank": 24
+    },
+    {
+      "feature_name": "fwd_pkt_len_max__imp",
+      "clean_feature_name": "fwd_pkt_len_max",
+      "training_index": 5,
+      "importance": 0.01289663,
+      "rank": 25
+    },
+    {
+      "feature_name": "flow_byts_s__imp",
+      "clean_feature_name": "flow_byts_s",
+      "training_index": 13,
+      "importance": 0.01253453,
+      "rank": 26
+    },
+    {
+      "feature_name": "pkt_len_var__imp",
+      "clean_feature_name": "pkt_len_var",
+      "training_index": 39,
+      "importance": 0.01024603,
+      "rank": 27
+    },
+    {
+      "feature_name": "pkt_len_min__imp",
+      "clean_feature_name": "pkt_len_min",
+      "training_index": 35,
+      "importance": 0.01009224,
+      "rank": 28
+    },
+    {
+      "feature_name": "bwd_pkt_len_std__imp",
+      "clean_feature_name": "bwd_pkt_len_std",
+      "training_index": 12,
+      "importance": 0.00945679,
+      "rank": 29
+    },
+    {
+      "feature_name": "pkt_len_max__imp",
+      "clean_feature_name": "pkt_len_max",
+      "training_index": 36,
+      "importance": 0.00917715,
+      "rank": 30
+    },
+    {
+      "feature_name": "bwd_iat_max__imp",
+      "clean_feature_name": "bwd_iat_max",
+      "training_index": 27,
+      "importance": 0.00876973,
+      "rank": 31
+    },
+    {
+      "feature_name": "fwd_iat_std__imp",
+      "clean_feature_name": "fwd_iat_std",
+      "training_index": 21,
+      "importance": 0.00851899,
+      "rank": 32
+    },
+    {
+      "feature_name": "tot_bwd_pkts__imp",
+      "clean_feature_name": "tot_bwd_pkts",
+      "training_index": 2,
+      "importance": 0.00821797,
+      "rank": 33
+    },
+    {
+      "feature_name": "totlen_bwd_pkts__imp",
+      "clean_feature_name": "totlen_bwd_pkts",
+      "training_index": 4,
+      "importance": 0.00788967,
+      "rank": 34
+    },
+    {
+      "feature_name": "bwd_iat_mean__imp",
+      "clean_feature_name": "bwd_iat_mean",
+      "training_index": 25,
+      "importance": 0.00757796,
+      "rank": 35
+    },
+    {
+      "feature_name": "fwd_pkt_len_std__imp",
+      "clean_feature_name": "fwd_pkt_len_std",
+      "training_index": 8,
+      "importance": 0.00737291,
+      "rank": 36
+    },
+    {
+      "feature_name": "fwd_pkt_len_mean__imp",
+      "clean_feature_name": "fwd_pkt_len_mean",
+      "training_index": 7,
+      "importance": 0.00670045,
+      "rank": 37
+    },
+    {
+      "feature_name": "pkt_size_avg__imp",
+      "clean_feature_name": "pkt_size_avg",
+      "training_index": 49,
+      "importance": 0.00656626,
+      "rank": 38
+    },
+    {
+      "feature_name": "bwd_iat_tot__imp",
+      "clean_feature_name": "bwd_iat_tot",
+      "training_index": 24,
+      "importance": 0.00629307,
+      "rank": 39
+    },
+    {
+      "feature_name": "pkt_len_mean__imp",
+      "clean_feature_name": "pkt_len_mean",
+      "training_index": 37,
+      "importance": 0.00617203,
+      "rank": 40
+    },
+    {
+      "feature_name": "ece_flag_cnt__imp",
+      "clean_feature_name": "ece_flag_cnt",
+      "training_index": 47,
+      "importance": 0.00590913,
+      "rank": 41
+    },
+    {
+      "feature_name": "bwd_iat_min__imp",
+      "clean_feature_name": "bwd_iat_min",
+      "training_index": 28,
+      "importance": 0.00568539,
+      "rank": 42
+    },
+    {
+      "feature_name": "urg_flag_cnt__imp",
+      "clean_feature_name": "urg_flag_cnt",
+      "training_index": 45,
+      "importance": 0.00535696,
+      "rank": 43
+    },
+    {
+      "feature_name": "bwd_iat_std__imp",
+      "clean_feature_name": "bwd_iat_std",
+      "training_index": 26,
+      "importance": 0.00517022,
+      "rank": 44
+    },
+    {
+      "feature_name": "idle_max__imp",
+      "clean_feature_name": "idle_max",
+      "training_index": 60,
+      "importance": 0.0050115,
+      "rank": 45
+    },
+    {
+      "feature_name": "ack_flag_cnt__imp",
+      "clean_feature_name": "ack_flag_cnt",
+      "training_index": 44,
+      "importance": 0.00476335,
+      "rank": 46
+    },
+    {
+      "feature_name": "fwd_pkt_len_min__imp",
+      "clean_feature_name": "fwd_pkt_len_min",
+      "training_index": 6,
+      "importance": 0.00423423,
+      "rank": 47
+    },
+    {
+      "feature_name": "protocol_idx",
+      "clean_feature_name": "protocol",
+      "training_index": 62,
+      "importance": 0.00418152,
+      "rank": 48
+    },
+    {
+      "feature_name": "psh_flag_cnt__imp",
+      "clean_feature_name": "psh_flag_cnt",
+      "training_index": 43,
+      "importance": 0.00405793,
+      "rank": 49
+    },
+    {
+      "feature_name": "down_up_ratio__imp",
+      "clean_feature_name": "down_up_ratio",
+      "training_index": 48,
+      "importance": 0.00216002,
+      "rank": 50
+    },
+    {
+      "feature_name": "active_mean__imp",
+      "clean_feature_name": "active_mean",
+      "training_index": 54,
+      "importance": 0.00187153,
+      "rank": 51
+    },
+    {
+      "feature_name": "active_min__imp",
+      "clean_feature_name": "active_min",
+      "training_index": 57,
+      "importance": 0.00131137,
+      "rank": 52
+    },
+    {
+      "feature_name": "syn_flag_cnt__imp",
+      "clean_feature_name": "syn_flag_cnt",
+      "training_index": 41,
+      "importance": 0.0011079,
+      "rank": 53
+    },
+    {
+      "feature_name": "idle_min__imp",
+      "clean_feature_name": "idle_min",
+      "training_index": 61,
+      "importance": 0.00105855,
+      "rank": 54
+    },
+    {
+      "feature_name": "idle_mean__imp",
+      "clean_feature_name": "idle_mean",
+      "training_index": 58,
+      "importance": 0.00099224,
+      "rank": 55
+    },
+    {
+      "feature_name": "active_std__imp",
+      "clean_feature_name": "active_std",
+      "training_index": 55,
+      "importance": 0.00087601,
+      "rank": 56
+    },
+    {
+      "feature_name": "fwd_psh_flags__imp",
+      "clean_feature_name": "fwd_psh_flags",
+      "training_index": 29,
+      "importance": 0.00073701,
+      "rank": 57
+    },
+    {
+      "feature_name": "active_max__imp",
+      "clean_feature_name": "active_max",
+      "training_index": 56,
+      "importance": 0.0006431,
+      "rank": 58
+    },
+    {
+      "feature_name": "idle_std__imp",
+      "clean_feature_name": "idle_std",
+      "training_index": 59,
+      "importance": 0.00049275,
+      "rank": 59
+    },
+    {
+      "feature_name": "bwd_pkt_len_min__imp",
+      "clean_feature_name": "bwd_pkt_len_min",
+      "training_index": 10,
+      "importance": 6.81e-05,
+      "rank": 60
+    },
+    {
+      "feature_name": "fin_flag_cnt__imp",
+      "clean_feature_name": "fin_flag_cnt",
+      "training_index": 40,
+      "importance": 1.678e-05,
+      "rank": 61
+    },
+    {
+      "feature_name": "fwd_urg_flags__imp",
+      "clean_feature_name": "fwd_urg_flags",
+      "training_index": 30,
+      "importance": 8.89e-06,
+      "rank": 62
+    },
+    {
+      "feature_name": "cwe_flag_count__imp",
+      "clean_feature_name": "cwe_flag_count",
+      "training_index": 46,
+      "importance": 7.25e-06,
+      "rank": 63
+    }
+  ]
+}

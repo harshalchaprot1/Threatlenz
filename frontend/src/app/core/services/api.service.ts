@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   AdvisoriesListResponse,
+  AllFeatureImportancesResponse,
   DestinationPortAnalyticsResponse,
   FeatureRedundancyResponse,
   HealthResponse,
@@ -160,6 +161,15 @@ export class ThreatLenzApiService {
   getModelDiagnostics(): Observable<ModelDiagnosticsResponse> {
     return this.http
       .get<ModelDiagnosticsResponse>(`${this.baseUrl}/api/v1/analytics/model-diagnostics`)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Complete 63 Random Forest feature importances sorted descending by importance.
+   */
+  getAllFeatureImportances(): Observable<AllFeatureImportancesResponse> {
+    return this.http
+      .get<AllFeatureImportancesResponse>(`${this.baseUrl}/api/v1/analytics/all-feature-importances`)
       .pipe(catchError(this.handleError));
   }
 

@@ -19,6 +19,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from backend.app.schemas_analytics import (
+    AllFeatureImportancesResponse,
     CategoryGovernanceItem,
     CategoryPortAnalysis,
     ConfusionMatrixPayload,
@@ -28,6 +29,7 @@ from backend.app.schemas_analytics import (
     FeatureRedundancyResponse,
     ModelDiagnosticsResponse,
     PortConcentrationItem,
+    RankedFeatureImportanceItem,
     SplitClassMetrics,
     SplitMetricsSummary,
     TemporalAnalyticsResponse,
@@ -336,4 +338,44 @@ def get_feature_redundancy() -> FeatureRedundancyResponse:
         redundant_pairs_count=redundant_count,
         all_evaluated_correlations=all_pairs,
     )
+
+
+@router.get(
+    "/all-feature-importances",
+    response_model=AllFeatureImportancesResponse,
+    summary="All 63 Random Forest Feature Importances",
+    description="Returns all 63 feature-importance values extracted from the clean Random Forest evaluation model artifact, sorted descending by importance.",
+)
+def get_all_feature_importances() -> AllFeatureImportancesResponse:
+    """Extracts all 63 Random Forest feature importances from precomputed verified analytical artifact."""
+    data = _load_report("all_feature_importances.json")
+
+    raw_items = data.get("all_feature_importances", [])
+    if len(raw_items) != 63:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Artifact 'all_feature_importances.json' contains {len(raw_items)} features, expected 63.",
+        )
+
+    items = [
+        RankedFeatureImportanceItem(
+            feature_name=item["feature_name"],
+            clean_feature_name=item["clean_feature_name"],
+            training_index=item["training_index"],
+            importance=float(item["importance"]),
+            rank=int(item["rank"]),
+        )
+        for item in raw_items
+    ]
+
+    return AllFeatureImportancesResponse(
+        artifact_name=str(data.get("artifact_name", "all_feature_importances")),
+        model_artifact=str(data.get("model_artifact", "models/clean_per_class_rf/model")),
+        feature_count=len(items),
+        feature_ordering=str(data.get("feature_ordering", "Sorted descending by importance")),
+        importance_method=str(data.get("importance_method", "")),
+        governance_notice=str(data.get("governance_notice", "")),
+        all_feature_importances=items,
+    )
+
 

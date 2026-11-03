@@ -3,9 +3,16 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ThreatLenzApiService } from '../../core/services/api.service';
-import { PipelineRunDetail, PipelineRunSummary, ThreatProfileSummary, ModelDiagnosticsResponse } from '../../core/models';
+import {
+  PipelineRunDetail,
+  PipelineRunSummary,
+  ThreatProfileSummary,
+  ModelDiagnosticsResponse,
+  RankedFeatureImportanceItem,
+} from '../../core/models';
 import {
   ReliabilityBadgeComponent,
   StatusBadgeComponent,
@@ -173,8 +180,9 @@ import {
 
         <!-- Academic Evaluation Diagnostics: Feature Importance & Confusion Matrix -->
         <app-feature-importance-chart
-          [featureImportances]="diagnosticsData?.top_feature_importances"
+          [allFeatures]="allFeatures"
           [loading]="loading"
+          [errorMessage]="errorMessage"
         ></app-feature-importance-chart>
 
         <app-confusion-matrix-grid
@@ -996,6 +1004,7 @@ export class GovernanceComponent implements OnInit {
   activeRun: PipelineRunDetail | null = null;
   profiles: ThreatProfileSummary[] = [];
   diagnosticsData: ModelDiagnosticsResponse | null = null;
+  allFeatures: RankedFeatureImportanceItem[] = [];
 
   constructor(private readonly apiService: ThreatLenzApiService) {}
 
@@ -1014,9 +1023,16 @@ export class GovernanceComponent implements OnInit {
           runDetail?: any;
           profiles: any;
           diagnostics: any;
+          allFeatures: any;
         } = {
           profiles: this.apiService.listProfiles({ limit: 100 }),
           diagnostics: this.apiService.getModelDiagnostics(),
+          allFeatures: this.apiService.getAllFeatureImportances().pipe(
+            catchError((err) => {
+              console.warn('Failed to load all feature importances; governance core telemetry preserved:', err);
+              return of(null);
+            })
+          ),
         };
 
         if (runId) {
@@ -1030,6 +1046,7 @@ export class GovernanceComponent implements OnInit {
             }
             this.profiles = res.profiles.items || [];
             this.diagnosticsData = res.diagnostics;
+            this.allFeatures = res.allFeatures?.all_feature_importances || [];
             this.loading = false;
           },
           error: (err) => {
