@@ -404,7 +404,7 @@ const FEATURE_METADATA_MAP: Record<string, FeatureMeta> = {
               <span class="material-symbols-outlined note-icon">policy</span>
               <strong>Governance Disclosures:</strong>
               Feature importance represents mean Gini impurity reduction across 30 decision trees in the clean evaluation model.
-              Higher importance indicates stronger statistical discrimination signal in flow partitions; it does <em>not</em> imply causation.
+              Higher importance indicates stronger statistical discrimination signal in flow partitions; it does not imply causation.
               Live pipeline inference remains quarantined under governance policy.
             </span>
           </div>

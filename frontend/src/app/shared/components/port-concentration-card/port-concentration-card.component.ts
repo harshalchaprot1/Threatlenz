@@ -156,10 +156,12 @@ import { DestinationPortAnalyticsResponse, CategoryPortAnalysis, PortConcentrati
       min-width: 190px;
       display: flex;
       align-items: center;
+      margin-top: 12px;
+      
 
       .category-select {
         width: 100%;
-        margin-bottom: -1.25em; /* Compensate for Angular Material form-field baseline spacing */
+        margin-bottom: 0; /* Compensate for Angular Material form-field baseline spacing */
       }
 
       ::ng-deep .mat-mdc-form-field-subscript-wrapper {
@@ -211,7 +213,7 @@ import { DestinationPortAnalyticsResponse, CategoryPortAnalysis, PortConcentrati
       }
 
       ::ng-deep .mat-mdc-floating-label {
-        top: 18px !important;
+        top: 28px !important;
         font-size: 11px;
       }
     }
