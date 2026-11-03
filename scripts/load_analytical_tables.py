@@ -19,10 +19,32 @@ logger = get_logger("ThreatLenz.CLI.AnalyticalLoader")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Ingest Phase 2 analytical tables with cryptographic provenance.")
-    parser.add_argument("--reports-dir", type=str, default=None, help="Directory containing JSON reports.")
-    parser.add_argument("--standalone", action="store_true", default=True, help="Ingest standalone without associating pipeline run (run_id=NULL). Default.")
-    parser.add_argument("--link-run-id", type=str, default=None, help="Explicit trustworthy pipeline run_id to link. Rejected if model provenance diverges.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Ingest Phase 2 analytical tables with cryptographic provenance. "
+            "Standalone mode (run_id=NULL) is the default. "
+            "Run linkage is opt-in and requires --link-run-id."
+        )
+    )
+    parser.add_argument(
+        "--reports-dir",
+        type=str,
+        default=None,
+        help="Directory containing JSON reports. Defaults to settings.reports_dir.",
+    )
+    parser.add_argument(
+        "--link-run-id",
+        type=str,
+        default=None,
+        help=(
+            "Explicit pipeline run_id to associate with both analytical tables. "
+            "Requires BOTH provenance checks to pass: "
+            "(1) RF report model_location must exactly match pipeline_run.model_artifact; "
+            "(2) Spark report dataset_path must exactly match pipeline_run.dataset_path. "
+            "If either check fails the entire linkage is rejected and ingestion aborts. "
+            "Omit to ingest standalone with run_id=NULL (default)."
+        ),
+    )
     args = parser.parse_args()
 
     engine = get_db_engine()

@@ -330,7 +330,7 @@ class AnalyticalConfusionMatrixRecord(Base):
         Index("ix_cm_labels", "true_label", "predicted_label"),
     )
 
-    id: Mapped[int] = mapped_column(Integer().with_variant(BigInteger, "postgresql"), primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     source_report_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     report_timestamp: Mapped[str] = mapped_column(String(32), nullable=False)
     pipeline_name: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -371,7 +371,7 @@ class AnalyticalPortConcentrationRecord(Base):
         Index("ix_port_num", "destination_port"),
     )
 
-    id: Mapped[int] = mapped_column(Integer().with_variant(BigInteger, "postgresql"), primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     source_report_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     report_timestamp: Mapped[str] = mapped_column(String(32), nullable=False)
     report_name: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -763,9 +763,6 @@ def ingest_analytical_tables(
     with open(spark_report_path, "r", encoding="utf-8") as f:
         spark_data = json.load(f)
 
-    rf_timestamp = str(rf_data.get("timestamp", ""))
-    spark_timestamp = str(spark_data.get("timestamp", ""))
-
     managed_session = False
     active_session = session
     if active_session is None:
@@ -778,20 +775,150 @@ def ingest_analytical_tables(
             pipeline_run = active_session.get(PipelineRun, link_run_id)
             if not pipeline_run:
                 raise ValueError(f"Pipeline run '{link_run_id}' not found in pipeline_runs.")
-            # Strict trust guard: reject false linkage if model artifacts diverge
-            rf_model = rf_data.get("model_location", "")
-            if pipeline_run.model_artifact and pipeline_run.model_artifact not in rf_model:
+
+            import os as _os
+
+            # ── Check 1: RF model artifact must match pipeline_run.model_artifact exactly. ──
+            # Normalize both paths: resolve OS separators, strip trailing slash, lowercase.
+            rf_model_raw = rf_data.get("model_location", "")
+            if not rf_model_raw:
                 raise ValueError(
-                    f"Provenance validation rejected linkage: pipeline_run model '{pipeline_run.model_artifact}' "
-                    f"diverges from evaluation report model '{rf_model}'."
+                    "Provenance validation rejected linkage: RF report has no 'model_location' field."
                 )
+            db_artifact_norm = _os.path.normpath(pipeline_run.model_artifact).replace(_os.sep, "/").lower()
+            rf_model_norm = _os.path.normpath(rf_model_raw).replace(_os.sep, "/").lower()
+            if db_artifact_norm != rf_model_norm:
+                raise ValueError(
+                    f"Provenance check 1 failed: pipeline_run.model_artifact "
+                    f"'{pipeline_run.model_artifact}' does not match RF report "
+                    f"model_location '{rf_model_raw}' after normalization. "
+                    f"Linkage rejected."
+                )
+
+            # ── Check 2: Spark dataset path must match pipeline_run.dataset_path exactly. ──
+            # Both checks must pass; failure of either rejects the entire linkage.
+            spark_dataset_raw = spark_data.get("dataset_path", "")
+            if not spark_dataset_raw:
+                raise ValueError(
+                    "Provenance validation rejected linkage: Spark report has no 'dataset_path' field."
+                )
+            db_dataset_norm = _os.path.normpath(pipeline_run.dataset_path).replace(_os.sep, "/").lower()
+            spark_dataset_norm = _os.path.normpath(spark_dataset_raw).replace(_os.sep, "/").lower()
+            if db_dataset_norm != spark_dataset_norm:
+                raise ValueError(
+                    f"Provenance check 2 failed: pipeline_run.dataset_path "
+                    f"'{pipeline_run.dataset_path}' does not match Spark report "
+                    f"dataset_path '{spark_dataset_raw}' after normalization. "
+                    f"Linkage rejected."
+                )
+
+            # Both checks passed — safe to associate run_id.
             validated_run_id = link_run_id
 
-        pipeline_name = str(rf_data.get("pipeline_name", "ThreatLenz-Phase3-RandomForest"))
-        model_artifact = str(rf_data.get("model_location", "models/clean_per_class_rf/model"))
+        pipeline_name = str(rf_data.get("pipeline_name", ""))
+        if not pipeline_name:
+            raise ValueError("RF report missing required 'pipeline_name' field.")
+        model_artifact = str(rf_data.get("model_location", ""))
+        if not model_artifact:
+            raise ValueError("RF report missing required 'model_location' field.")
+        rf_timestamp_val = str(rf_data.get("timestamp", ""))
+        if not rf_timestamp_val:
+            raise ValueError("RF report missing required 'timestamp' field.")
 
-        spark_report_name = str(spark_data.get("report_name", "ThreatLenz-Phase2-Spark-Analytics"))
-        dataset_path = str(spark_data.get("dataset_path", "data/processed/flows.parquet"))
+        spark_report_name = str(spark_data.get("report_name", ""))
+        if not spark_report_name:
+            raise ValueError("Spark report missing required 'report_name' field.")
+        dataset_path = str(spark_data.get("dataset_path", ""))
+        if not dataset_path:
+            raise ValueError("Spark report missing required 'dataset_path' field.")
+        spark_timestamp_val = str(spark_data.get("timestamp", ""))
+        if not spark_timestamp_val:
+            raise ValueError("Spark report missing required 'timestamp' field.")
+
+        # Validate RF confusion matrix structure before any insert
+        _EXPECTED_CLASSES = 14
+        for split in ["validation", "test"]:
+            split_key = f"{split}_metrics"
+            cm_obj = rf_data.get(split_key, {}).get("confusion_matrix", {})
+            class_labels = cm_obj.get("class_labels")
+            raw_matrix = cm_obj.get("raw_matrix")
+            norm_matrix = cm_obj.get("normalized_matrix")
+            if not class_labels or not raw_matrix or not norm_matrix:
+                raise ValueError(
+                    f"RF report '{split}_metrics.confusion_matrix' is missing "
+                    f"'class_labels', 'raw_matrix', or 'normalized_matrix'."
+                )
+            if len(class_labels) != _EXPECTED_CLASSES:
+                raise ValueError(
+                    f"RF report '{split}' has {len(class_labels)} classes; expected {_EXPECTED_CLASSES}."
+                )
+            if len(raw_matrix) != _EXPECTED_CLASSES:
+                raise ValueError(
+                    f"RF report '{split}' raw_matrix has {len(raw_matrix)} rows; expected {_EXPECTED_CLASSES}."
+                )
+            if len(norm_matrix) != _EXPECTED_CLASSES:
+                raise ValueError(
+                    f"RF report '{split}' normalized_matrix has {len(norm_matrix)} rows; expected {_EXPECTED_CLASSES}."
+                )
+            for row_idx, row in enumerate(raw_matrix):
+                if len(row) != _EXPECTED_CLASSES:
+                    raise ValueError(
+                        f"RF report '{split}' raw_matrix row {row_idx} has {len(row)} columns; expected {_EXPECTED_CLASSES}."
+                    )
+                for val in row:
+                    if int(val) < 0:
+                        raise ValueError(
+                            f"RF report '{split}' raw_matrix[{row_idx}] contains negative count {val}."
+                        )
+            for row_idx, row in enumerate(norm_matrix):
+                if len(row) != _EXPECTED_CLASSES:
+                    raise ValueError(
+                        f"RF report '{split}' normalized_matrix row {row_idx} has {len(row)} columns; expected {_EXPECTED_CLASSES}."
+                    )
+
+        # Validate Spark port data structure before any insert
+        dest_port_analysis = spark_data.get("destination_port_analysis", {})
+        if not dest_port_analysis:
+            raise ValueError("Spark report missing or empty 'destination_port_analysis'.")
+        for cat_name, cat_obj in dest_port_analysis.items():
+            if not isinstance(cat_obj, dict):
+                raise ValueError(
+                    f"Spark report destination_port_analysis['{cat_name}'] is not a dict."
+                )
+            total_flows = cat_obj.get("total_flows")
+            if total_flows is None or int(total_flows) <= 0:
+                raise ValueError(
+                    f"Spark report category '{cat_name}' has missing or zero total_flows: {total_flows}."
+                )
+            top_ports = cat_obj.get("top_ports")
+            if top_ports is None:
+                raise ValueError(
+                    f"Spark report category '{cat_name}' missing 'top_ports' key."
+                )
+            for p in top_ports:
+                port_num = p.get("port")
+                if port_num is None:
+                    raise ValueError(
+                        f"Spark report category '{cat_name}' top_ports entry missing 'port' key."
+                    )
+                if not (0 <= int(port_num) <= 65535):
+                    raise ValueError(
+                        f"Spark report category '{cat_name}' port {port_num} outside valid range [0, 65535]."
+                    )
+                pct = p.get("percentage_within_class")
+                if pct is None:
+                    raise ValueError(
+                        f"Spark report category '{cat_name}' port {port_num} missing 'percentage_within_class'."
+                    )
+                if not (0.0 <= float(pct) <= 100.0):
+                    raise ValueError(
+                        f"Spark report category '{cat_name}' port {port_num} percentage {pct} outside [0.0, 100.0]."
+                    )
+                f_count = p.get("flow_count")
+                if f_count is None or int(f_count) < 0:
+                    raise ValueError(
+                        f"Spark report category '{cat_name}' port {port_num} has invalid flow_count: {f_count}."
+                    )
 
         # Atomic transaction: delete existing rows for these report hashes, then insert new
         with active_session.begin_nested():
@@ -810,28 +937,28 @@ def ingest_analytical_tables(
             cm_count = 0
             for split in ["validation", "test"]:
                 split_key = f"{split}_metrics"
-                split_metrics = rf_data.get(split_key, {})
-                cm_obj = split_metrics.get("confusion_matrix", {})
-                class_labels = cm_obj.get("class_labels", [])
-                raw_matrix = cm_obj.get("raw_matrix", [])
-                norm_matrix = cm_obj.get("normalized_matrix", [])
+                cm_obj = rf_data[split_key]["confusion_matrix"]
+                class_labels = cm_obj["class_labels"]
+                raw_matrix = cm_obj["raw_matrix"]
+                norm_matrix = cm_obj["normalized_matrix"]
 
                 for i, true_lbl in enumerate(class_labels):
-                    row_raw = raw_matrix[i] if i < len(raw_matrix) else []
-                    row_norm = norm_matrix[i] if i < len(norm_matrix) else []
+                    row_raw = raw_matrix[i]
+                    row_norm = norm_matrix[i]
                     class_support = sum(row_raw)
+                    if class_support < 0:
+                        raise ValueError(
+                            f"RF report '{split}' class '{true_lbl}' has negative support {class_support}."
+                        )
 
                     for j, pred_lbl in enumerate(class_labels):
-                        raw_c = int(row_raw[j]) if j < len(row_raw) else 0
-                        norm_ratio = (
-                            float(row_norm[j])
-                            if j < len(row_norm)
-                            else (raw_c / class_support if class_support > 0 else 0.0)
-                        )
+                        # No silent zero defaults — both dimensions validated above
+                        raw_c = int(row_raw[j])
+                        norm_ratio = float(row_norm[j])
 
                         cm_rec = AnalyticalConfusionMatrixRecord(
                             source_report_hash=rf_hash,
-                            report_timestamp=rf_timestamp,
+                            report_timestamp=rf_timestamp_val,
                             pipeline_name=pipeline_name,
                             model_artifact=model_artifact,
                             run_id=validated_run_id,
@@ -849,24 +976,23 @@ def ingest_analytical_tables(
 
             # Ingest port concentration
             port_count = 0
-            dest_port_analysis = spark_data.get("destination_port_analysis", {})
             for cat_name, cat_obj in dest_port_analysis.items():
                 if not isinstance(cat_obj, dict):
                     continue
-                total_flows = int(cat_obj.get("total_flows", 0))
+                total_flows = int(cat_obj["total_flows"])
                 has_extreme = bool(cat_obj.get("has_extreme_port_concentration", False))
-                top_ports = cat_obj.get("top_ports", [])
+                top_ports = cat_obj["top_ports"]
 
                 for p in top_ports:
-                    port_num = int(p.get("port", 0))
+                    port_num = int(p["port"])
                     svc_name = p.get("service_name")
                     crit_weight = int(p.get("criticality_weight", 50))
-                    f_count = int(p.get("flow_count", 0))
-                    pct_within = float(p.get("percentage_within_class", 0.0))
+                    f_count = int(p["flow_count"])
+                    pct_within = float(p["percentage_within_class"])
 
                     port_rec = AnalyticalPortConcentrationRecord(
                         source_report_hash=spark_hash,
-                        report_timestamp=spark_timestamp,
+                        report_timestamp=spark_timestamp_val,
                         report_name=spark_report_name,
                         dataset_path=dataset_path,
                         run_id=validated_run_id,

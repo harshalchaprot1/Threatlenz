@@ -63,7 +63,7 @@ ALTER INDEX ix_port_num RENAME TO ix_port_num_backup_v1;
 
 -- 7. Create target analytical_confusion_matrix
 CREATE TABLE analytical_confusion_matrix (
-    id                    SERIAL PRIMARY KEY,
+    id                    BIGSERIAL PRIMARY KEY,
     source_report_hash    VARCHAR(64)   NOT NULL,
     report_timestamp      VARCHAR(32)   NOT NULL,
     pipeline_name         VARCHAR(128)  NOT NULL,
@@ -94,7 +94,7 @@ CREATE INDEX ix_cm_labels ON analytical_confusion_matrix (true_label, predicted_
 
 -- 8. Create target analytical_port_concentration
 CREATE TABLE analytical_port_concentration (
-    id                         SERIAL PRIMARY KEY,
+    id                         BIGSERIAL PRIMARY KEY,
     source_report_hash         VARCHAR(64)   NOT NULL,
     report_timestamp           VARCHAR(32)   NOT NULL,
     report_name                VARCHAR(128)  NOT NULL,

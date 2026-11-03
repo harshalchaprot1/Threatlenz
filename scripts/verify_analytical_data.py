@@ -63,7 +63,24 @@ def verify_all() -> int:
             assert actual_hash == expected_hash, f"FAILED: Core table {tbl} was modified! {actual_hash} != {expected_hash}"
             print("[MATCH]")
 
-        print("\n=== 2. VERIFYING CONFUSION MATRIX (392 CELLS) ===")
+        print("\n=== 2. VERIFYING BACKUP TABLES EXIST AND CONTAIN ORIGINAL RECORDS ===")
+        backup_cm = conn.execute(sqlalchemy.text(
+            "SELECT COUNT(*) FROM analytical_confusion_matrix_backup_v1;"
+        )).scalar()
+        assert backup_cm == 392, (
+            f"Expected 392 rows in analytical_confusion_matrix_backup_v1, found {backup_cm}"
+        )
+        print(f"analytical_confusion_matrix_backup_v1: {backup_cm} rows [OK]")
+
+        backup_port = conn.execute(sqlalchemy.text(
+            "SELECT COUNT(*) FROM analytical_port_concentration_backup_v1;"
+        )).scalar()
+        assert backup_port == 27, (
+            f"Expected 27 rows in analytical_port_concentration_backup_v1, found {backup_port}"
+        )
+        print(f"analytical_port_concentration_backup_v1: {backup_port} rows [OK]")
+
+        print("\n=== 3. VERIFYING CONFUSION MATRIX (392 CELLS) ===")
         cm_rows = conn.execute(sqlalchemy.text(
             "SELECT source_report_hash, report_timestamp, pipeline_name, model_artifact, run_id, "
             "evaluated_split, true_label, predicted_label, true_label_idx, predicted_label_idx, "
@@ -86,20 +103,27 @@ def verify_all() -> int:
                 expected_support = sum(raw_matrix[i])
                 for j, pred_lbl in enumerate(class_labels):
                     row = cm_dict[(split, i, j)]
-                    assert row[0] == expected_rf_hash, f"Hash mismatch in CM cell {split}[{i},{j}]"
-                    assert row[1] == rf_data["timestamp"], f"Timestamp mismatch in CM cell {split}[{i},{j}]"
-                    assert row[4] is None, f"Expected run_id=NULL in CM cell {split}[{i},{j}], got {row[4]}"
-                    assert row[6] == true_lbl, f"True label mismatch: {row[6]} != {true_lbl}"
-                    assert row[7] == pred_lbl, f"Predicted label mismatch: {row[7]} != {pred_lbl}"
-                    assert row[10] == raw_matrix[i][j], f"Raw count mismatch: {row[10]} != {raw_matrix[i][j]}"
-                    assert row[11] == expected_support, f"Support mismatch: {row[11]} != {expected_support}"
-                    expected_ratio = Decimal(str(round(norm_matrix[i][j], 4)))
-                    assert row[12] == expected_ratio, f"Ratio mismatch: {row[12]} != {expected_ratio}"
+                    assert row[0] == expected_rf_hash, f"Hash mismatch in CM cell {split}[{i},{j}]: {row[0]!r} != {expected_rf_hash!r}"
+                    assert row[1] == rf_data["timestamp"], f"Timestamp mismatch in CM cell {split}[{i},{j}]: {row[1]!r} != {rf_data['timestamp']!r}"
+                    assert row[4] is None, f"Expected run_id=NULL in CM cell {split}[{i},{j}], got {row[4]!r}"
+                    assert row[6] == true_lbl, f"True label mismatch at [{i},{j}]: {row[6]!r} != {true_lbl!r}"
+                    assert row[7] == pred_lbl, f"Predicted label mismatch at [{i},{j}]: {row[7]!r} != {pred_lbl!r}"
+                    assert int(row[10]) == int(raw_matrix[i][j]), (
+                        f"Raw count mismatch at {split}[{i},{j}]: {row[10]} != {raw_matrix[i][j]}"
+                    )
+                    assert int(row[11]) == int(expected_support), (
+                        f"Support mismatch at {split}[{i}]: {row[11]} != {expected_support}"
+                    )
+                    # normalized_ratio stored as NUMERIC(8,4) — compare as Decimal rounded to 4dp
+                    expected_ratio = Decimal(str(round(float(norm_matrix[i][j]), 4)))
+                    assert row[12] == expected_ratio, (
+                        f"Ratio mismatch at {split}[{i},{j}]: {row[12]} != {expected_ratio}"
+                    )
                     cells_validated += 1
 
         print(f"Validated all {cells_validated} confusion matrix cells against JSON with 100% precision.")
 
-        print("\n=== 3. VERIFYING PORT CONCENTRATION (27 RECORDS) ===")
+        print("\n=== 4. VERIFYING PORT CONCENTRATION (27 RECORDS) ===")
         port_rows = conn.execute(sqlalchemy.text(
             "SELECT source_report_hash, report_timestamp, report_name, dataset_path, run_id, "
             "threat_category, destination_port, service_name, criticality_weight, "
@@ -118,21 +142,35 @@ def verify_all() -> int:
             for p in cat_obj.get("top_ports", []):
                 p_num = int(p["port"])
                 row = port_dict[(cat_name, p_num)]
-                assert row[0] == expected_spark_hash, f"Hash mismatch in Port {cat_name}:{p_num}"
-                assert row[1] == spark_data["timestamp"], f"Timestamp mismatch in Port {cat_name}:{p_num}"
-                assert row[4] is None, f"Expected run_id=NULL in Port {cat_name}:{p_num}, got {row[4]}"
-                assert row[9] == int(p["flow_count"]), f"Flow count mismatch: {row[9]} != {p['flow_count']}"
-                assert row[10] == total_flows, f"Total flows mismatch: {row[10]} != {total_flows}"
-                expected_pct = Decimal(str(p["percentage_within_class"]))
-                assert row[11] == expected_pct, f"Percentage mismatch: {row[11]} != {expected_pct}"
-                assert row[12] == has_extreme, f"Extreme concentration flag mismatch"
+                assert row[0] == expected_spark_hash, (
+                    f"Hash mismatch in Port {cat_name}:{p_num}: {row[0]!r} != {expected_spark_hash!r}"
+                )
+                assert row[1] == spark_data["timestamp"], (
+                    f"Timestamp mismatch in Port {cat_name}:{p_num}: {row[1]!r} != {spark_data['timestamp']!r}"
+                )
+                assert row[4] is None, f"Expected run_id=NULL in Port {cat_name}:{p_num}, got {row[4]!r}"
+                assert int(row[9]) == int(p["flow_count"]), (
+                    f"Flow count mismatch at {cat_name}:{p_num}: {row[9]} != {p['flow_count']}"
+                )
+                assert int(row[10]) == total_flows, (
+                    f"Total flows mismatch at {cat_name}:{p_num}: {row[10]} != {total_flows}"
+                )
+                # percentage_within_class stored as NUMERIC(6,2) — compare rounded to 2dp
+                expected_pct = Decimal(str(round(float(p["percentage_within_class"]), 2)))
+                assert row[11] == expected_pct, (
+                    f"Percentage mismatch at {cat_name}:{p_num}: {row[11]} != {expected_pct}"
+                )
+                assert bool(row[12]) == has_extreme, (
+                    f"Extreme concentration flag mismatch at {cat_name}:{p_num}: {row[12]} != {has_extreme}"
+                )
                 ports_validated += 1
 
         print(f"Validated all {ports_validated} destination-port records against JSON with 100% precision.")
 
     print("\n============================================================")
-    print("SUCCESS: ALL 392 CONFUSION CELLS, 27 PORT RECORDS, AND 5 CORE")
-    print("TABLES MATCH EXPECTED BASELINES WITH 100% MATHEMATICAL PRECISION.")
+    print("SUCCESS: ALL 392 CONFUSION CELLS, 27 PORT RECORDS, 2 BACKUP")
+    print("TABLES, AND 5 CORE TABLES MATCH EXPECTED BASELINES WITH")
+    print("100% MATHEMATICAL PRECISION.")
     print("============================================================")
     return 0
 
