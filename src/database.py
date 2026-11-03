@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional, Union
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Index,
@@ -33,6 +34,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
+    delete,
     event,
     select,
 )
@@ -308,6 +310,90 @@ class AdvisoryRecord(Base):
 
     # Relationships
     profile: Mapped["ThreatProfileRecord"] = relationship("ThreatProfileRecord", back_populates="advisories")
+
+
+class AnalyticalConfusionMatrixRecord(Base):
+    """Historical evaluated confusion matrix per class for holdout splits."""
+
+    __tablename__ = "analytical_confusion_matrix"
+    __table_args__ = (
+        CheckConstraint("evaluated_split IN ('validation', 'test')", name="ck_cm_evaluated_split"),
+        UniqueConstraint(
+            "source_report_hash",
+            "evaluated_split",
+            "true_label",
+            "predicted_label",
+            name="uq_confusion_cell",
+        ),
+        Index("ix_cm_hash_split", "source_report_hash", "evaluated_split"),
+        Index("ix_cm_run_id", "run_id"),
+        Index("ix_cm_labels", "true_label", "predicted_label"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer().with_variant(BigInteger, "postgresql"), primary_key=True, autoincrement=True)
+    source_report_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    report_timestamp: Mapped[str] = mapped_column(String(32), nullable=False)
+    pipeline_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    model_artifact: Mapped[str] = mapped_column(String(255), nullable=False)
+    run_id: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        ForeignKey("pipeline_runs.run_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    evaluated_split: Mapped[str] = mapped_column(String(32), nullable=False)
+    true_label: Mapped[str] = mapped_column(String(64), nullable=False)
+    predicted_label: Mapped[str] = mapped_column(String(64), nullable=False)
+    true_label_idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    predicted_label_idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    raw_count: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    true_class_support: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    normalized_ratio: Mapped[float] = mapped_column(Numeric(8, 4), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class AnalyticalPortConcentrationRecord(Base):
+    """Destination port distribution and concentration per evaluated threat class."""
+
+    __tablename__ = "analytical_port_concentration"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_report_hash",
+            "threat_category",
+            "destination_port",
+            name="uq_port_concentration",
+        ),
+        Index("ix_port_hash_cat", "source_report_hash", "threat_category"),
+        Index("ix_port_run_id", "run_id"),
+        Index("ix_port_num", "destination_port"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer().with_variant(BigInteger, "postgresql"), primary_key=True, autoincrement=True)
+    source_report_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    report_timestamp: Mapped[str] = mapped_column(String(32), nullable=False)
+    report_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    dataset_path: Mapped[str] = mapped_column(String(255), nullable=False)
+    run_id: Mapped[Optional[str]] = mapped_column(
+        String(64),
+        ForeignKey("pipeline_runs.run_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    threat_category: Mapped[str] = mapped_column(String(64), nullable=False)
+    destination_port: Mapped[int] = mapped_column(Integer, nullable=False)
+    service_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    criticality_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=50)
+    flow_count: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    total_class_flows: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    percentage_within_class: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False)
+    has_extreme_concentration: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+    )
 
 
 # Custom Exceptions
@@ -633,3 +719,197 @@ def get_profiles_for_run(run_id: str, session: Session) -> List[ThreatProfileRec
     """Fetches all threat profiles associated with a run_id."""
     stmt = select(ThreatProfileRecord).where(ThreatProfileRecord.run_id == run_id)
     return list(session.scalars(stmt).all())
+
+
+def compute_file_sha256(filepath: Union[str, Path]) -> str:
+    """Computes hexadecimal SHA-256 hash for a given file."""
+    import hashlib
+
+    hasher = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def ingest_analytical_tables(
+    reports_dir: Optional[Union[str, Path]] = None,
+    link_run_id: Optional[str] = None,
+    session: Optional[Session] = None,
+) -> Dict[str, Any]:
+    """Ingests analytical confusion matrix and port concentration data.
+
+    Safeguards:
+    1. Cryptographic Provenance: Records SHA-256 source_report_hash and exact raw timestamp.
+    2. Strict Trust Boundary: run_id defaults to NULL unless link_run_id is explicitly provided
+       and passes trustworthiness validation against pipeline_runs.
+    3. Safe Normalization: Decimal ratio [0.0, 1.0] for confusion matrix, percentage [0.0, 100.0] for ports.
+    4. Idempotent Upsert: Atomic transaction replaces existing rows matching source_report_hash.
+    """
+    target_dir = Path(reports_dir) if reports_dir else settings.reports_dir
+    rf_report_path = target_dir / "clean_per_class_rf_evaluation_report.json"
+    spark_report_path = target_dir / "spark_analytics_report.json"
+
+    if not rf_report_path.exists():
+        raise FileNotFoundError(f"Missing RF evaluation report at: {rf_report_path}")
+    if not spark_report_path.exists():
+        raise FileNotFoundError(f"Missing Spark analytics report at: {spark_report_path}")
+
+    rf_hash = compute_file_sha256(rf_report_path)
+    spark_hash = compute_file_sha256(spark_report_path)
+
+    with open(rf_report_path, "r", encoding="utf-8") as f:
+        rf_data = json.load(f)
+    with open(spark_report_path, "r", encoding="utf-8") as f:
+        spark_data = json.load(f)
+
+    rf_timestamp = str(rf_data.get("timestamp", ""))
+    spark_timestamp = str(spark_data.get("timestamp", ""))
+
+    managed_session = False
+    active_session = session
+    if active_session is None:
+        active_session = get_db_session()
+        managed_session = True
+
+    try:
+        validated_run_id: Optional[str] = None
+        if link_run_id:
+            pipeline_run = active_session.get(PipelineRun, link_run_id)
+            if not pipeline_run:
+                raise ValueError(f"Pipeline run '{link_run_id}' not found in pipeline_runs.")
+            # Strict trust guard: reject false linkage if model artifacts diverge
+            rf_model = rf_data.get("model_location", "")
+            if pipeline_run.model_artifact and pipeline_run.model_artifact not in rf_model:
+                raise ValueError(
+                    f"Provenance validation rejected linkage: pipeline_run model '{pipeline_run.model_artifact}' "
+                    f"diverges from evaluation report model '{rf_model}'."
+                )
+            validated_run_id = link_run_id
+
+        pipeline_name = str(rf_data.get("pipeline_name", "ThreatLenz-Phase3-RandomForest"))
+        model_artifact = str(rf_data.get("model_location", "models/clean_per_class_rf/model"))
+
+        spark_report_name = str(spark_data.get("report_name", "ThreatLenz-Phase2-Spark-Analytics"))
+        dataset_path = str(spark_data.get("dataset_path", "data/processed/flows.parquet"))
+
+        # Atomic transaction: delete existing rows for these report hashes, then insert new
+        with active_session.begin_nested():
+            active_session.execute(
+                delete(AnalyticalConfusionMatrixRecord).where(
+                    AnalyticalConfusionMatrixRecord.source_report_hash == rf_hash
+                )
+            )
+            active_session.execute(
+                delete(AnalyticalPortConcentrationRecord).where(
+                    AnalyticalPortConcentrationRecord.source_report_hash == spark_hash
+                )
+            )
+
+            # Ingest confusion matrix for validation and test splits
+            cm_count = 0
+            for split in ["validation", "test"]:
+                split_key = f"{split}_metrics"
+                split_metrics = rf_data.get(split_key, {})
+                cm_obj = split_metrics.get("confusion_matrix", {})
+                class_labels = cm_obj.get("class_labels", [])
+                raw_matrix = cm_obj.get("raw_matrix", [])
+                norm_matrix = cm_obj.get("normalized_matrix", [])
+
+                for i, true_lbl in enumerate(class_labels):
+                    row_raw = raw_matrix[i] if i < len(raw_matrix) else []
+                    row_norm = norm_matrix[i] if i < len(norm_matrix) else []
+                    class_support = sum(row_raw)
+
+                    for j, pred_lbl in enumerate(class_labels):
+                        raw_c = int(row_raw[j]) if j < len(row_raw) else 0
+                        norm_ratio = (
+                            float(row_norm[j])
+                            if j < len(row_norm)
+                            else (raw_c / class_support if class_support > 0 else 0.0)
+                        )
+
+                        cm_rec = AnalyticalConfusionMatrixRecord(
+                            source_report_hash=rf_hash,
+                            report_timestamp=rf_timestamp,
+                            pipeline_name=pipeline_name,
+                            model_artifact=model_artifact,
+                            run_id=validated_run_id,
+                            evaluated_split=split,
+                            true_label=true_lbl,
+                            predicted_label=pred_lbl,
+                            true_label_idx=i,
+                            predicted_label_idx=j,
+                            raw_count=raw_c,
+                            true_class_support=class_support,
+                            normalized_ratio=round(norm_ratio, 4),
+                        )
+                        active_session.add(cm_rec)
+                        cm_count += 1
+
+            # Ingest port concentration
+            port_count = 0
+            dest_port_analysis = spark_data.get("destination_port_analysis", {})
+            for cat_name, cat_obj in dest_port_analysis.items():
+                if not isinstance(cat_obj, dict):
+                    continue
+                total_flows = int(cat_obj.get("total_flows", 0))
+                has_extreme = bool(cat_obj.get("has_extreme_port_concentration", False))
+                top_ports = cat_obj.get("top_ports", [])
+
+                for p in top_ports:
+                    port_num = int(p.get("port", 0))
+                    svc_name = p.get("service_name")
+                    crit_weight = int(p.get("criticality_weight", 50))
+                    f_count = int(p.get("flow_count", 0))
+                    pct_within = float(p.get("percentage_within_class", 0.0))
+
+                    port_rec = AnalyticalPortConcentrationRecord(
+                        source_report_hash=spark_hash,
+                        report_timestamp=spark_timestamp,
+                        report_name=spark_report_name,
+                        dataset_path=dataset_path,
+                        run_id=validated_run_id,
+                        threat_category=cat_name,
+                        destination_port=port_num,
+                        service_name=svc_name,
+                        criticality_weight=crit_weight,
+                        flow_count=f_count,
+                        total_class_flows=total_flows,
+                        percentage_within_class=round(pct_within, 2),
+                        has_extreme_concentration=has_extreme,
+                    )
+                    active_session.add(port_rec)
+                    port_count += 1
+
+            active_session.flush()
+
+        if managed_session:
+            active_session.commit()
+
+        logger.info(
+            "Successfully ingested analytical records: %d confusion cells (hash: %s), %d port records (hash: %s). run_id=%s",
+            cm_count,
+            rf_hash[:12],
+            port_count,
+            spark_hash[:12],
+            validated_run_id,
+        )
+        return {
+            "confusion_matrix_rows": cm_count,
+            "port_concentration_rows": port_count,
+            "rf_report_hash": rf_hash,
+            "spark_report_hash": spark_hash,
+            "run_id": validated_run_id,
+        }
+
+    except Exception as exc:
+        if managed_session:
+            active_session.rollback()
+        logger.error("Failed to ingest analytical tables: %s", exc)
+        raise
+    finally:
+        if managed_session:
+            active_session.close()
+
+
