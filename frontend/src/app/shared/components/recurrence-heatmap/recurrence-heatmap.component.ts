@@ -190,6 +190,20 @@ export class RecurrenceHeatmapComponent implements OnChanges {
     this.chartOptions = {
       backgroundColor: 'transparent',
       grid: { left: 130, right: 90, top: 8, bottom: 24 },
+      // visualMap is required by ECharts heatmap to drive cell rendering.
+      // show:false keeps it invisible; seriesIndex:0 scopes it to this series.
+      // The actual cell colours are applied per-item via series data itemStyle.color.
+      visualMap: {
+        type: 'continuous',
+        show: false,
+        min: 0,
+        max: 1,
+        seriesIndex: 0,
+        inRange: {
+          // Fallback colour range used only when itemStyle.color is absent.
+          color: ['rgba(255,255,255,0.04)', '#10B981'],
+        },
+      },
       tooltip: {
         trigger: 'item',
         backgroundColor: '#1E293B',
