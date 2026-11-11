@@ -105,12 +105,12 @@ export type ReportTab = 'all' | 'ports' | 'redundancy' | 'mitre';
           ></app-stat-card>
 
           <app-stat-card
-            title="MITRE Verified Attribution"
-            [value]="verifiedMitreCount.toString()"
-            subtitle="Netflow L4 boundary; host telemetry required"
-            icon="verified_user"
-            badgeText="0 Verified Attribution"
-            badgeType="default"
+            title="MITRE ATT&CK Evidence Coverage"
+            value="Evidence-aware"
+            subtitle="Candidate mappings are assessed against available network-flow evidence. Verification requires supporting telemetry."
+            icon="policy"
+            badgeText="Framework Integrated"
+            badgeType="info"
           ></app-stat-card>
         </div>
 
