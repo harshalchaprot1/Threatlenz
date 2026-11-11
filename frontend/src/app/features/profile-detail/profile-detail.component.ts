@@ -18,9 +18,7 @@ import {
 import { resolveReliabilityTier } from '../../core/utils/reliability.util';
 import {
   AdvisoryCardComponent,
-  EvidenceBannerComponent,
   ReliabilityBadgeComponent,
-  RiskBandBadgeComponent,
   StatCardComponent,
   StatusBadgeComponent,
 } from '../../shared/components';
@@ -37,8 +35,6 @@ import {
     MatProgressSpinnerModule,
     StatusBadgeComponent,
     ReliabilityBadgeComponent,
-    RiskBandBadgeComponent,
-    EvidenceBannerComponent,
     AdvisoryCardComponent,
     StatCardComponent,
   ],
@@ -89,23 +85,10 @@ import {
               </span>
               <span class="meta-divider">•</span>
               <span class="meta-item">
-                <span class="meta-label">Snapshot ID:</span>
-                <span class="meta-val font-mono">{{ profile.snapshot_id }}</span>
-              </span>
-              <span class="meta-divider">•</span>
-              <span class="meta-item">
                 <span class="meta-label">Run ID:</span>
                 <span class="meta-val font-mono">{{ profile.run_id }}</span>
               </span>
             </div>
-          </div>
-
-          <div class="hero-right">
-            <app-risk-band-badge
-              [riskBand]="risk?.risk_band"
-              [isConfirmed]="risk?.is_confirmed ?? false"
-              [provisionalBand]="risk?.provisional_risk_band"
-            ></app-risk-band-badge>
           </div>
         </div>
 
@@ -557,20 +540,21 @@ import {
 
               <div class="tab-pane">
                 @if (mitre) {
-                  <!-- Global Telemetry Boundary Disclosure -->
-                  <div class="boundary-disclosure-panel">
-                    <div class="disclosure-header">
-                      <span class="material-symbols-outlined boundary-icon">policy</span>
-                      <div class="disclosure-title-group">
-                        <span class="disclosure-title">Telemetry Boundary &amp; Attribution Safeguard</span>
-                        <span class="safeguard-badge">0 Verified Attributions</span>
-                      </div>
+                  @if (mitre.mapping_status === 'not_applicable') {
+                    <!-- Benign baseline: no mapping applicable -->
+                    <div class="mitre-info-notice">
+                      <span class="material-symbols-outlined notice-icon">info</span>
+                      <span>This profile represents benign baseline traffic. No adversary technique mapping applies.</span>
                     </div>
-                    <p class="disclosure-body">
-                      This mapping represents a <strong>{{ getMitreStatusLabel(mitre.mapping_status) }}</strong> derived from L4 Netflow statistical behavioral indicators. Because the evaluated CSE-CIC-IDS2018 dataset lacks host process execution trees, endpoint EDR logs, decrypted application payloads, and server authentication logs, <strong>zero profiles have verified adversary attribution</strong>. Netflow telemetry alone is insufficient to confirm tactical execution.
-                    </p>
-                  </div>
+                  } @else if (!mitre.is_confirmed) {
+                    <!-- Unverified/candidate: neutral contextual disclosure -->
+                    <div class="mitre-info-notice">
+                      <span class="material-symbols-outlined notice-icon">policy</span>
+                      <span>No evidence-verified ATT&CK attribution is currently available for this profile. The mapping below is a behavioral candidate derived from L4 Netflow flow signatures. Host-level telemetry required for verified attribution is listed in the card.</span>
+                    </div>
+                  }
 
+                  @if (mitre.mapping_status !== 'not_applicable') {
                   <div class="mitre-card">
                     <div class="mitre-header">
                       <div class="mitre-technique">
@@ -659,6 +643,7 @@ import {
                       </div>
                     </div>
                   </div>
+                  }
                 }
               </div>
             </mat-tab>
@@ -675,9 +660,9 @@ import {
                 <div class="governance-reminder">
                   <span class="material-symbols-outlined gov-icon">gavel</span>
                   <div class="gov-text">
-                    <span class="gov-title">Human Analyst Validation Enforced</span>
+                    <span class="gov-title">Advisory recommendations — analyst review required before implementation.</span>
                     <span class="gov-desc">
-                      ThreatLenz recommendations are strictly advisory and non-destructive. Automated block scripts are prohibited.
+                      ThreatLenz recommendations are strictly advisory and non-destructive. Automated firewall block scripts and configuration changes are prohibited without human authorization.
                     </span>
                   </div>
                 </div>
@@ -732,12 +717,7 @@ import {
                         {{ profile.profile_id }}
                       </span>
                     </div>
-                    <div class="pcard-row">
-                      <span class="pcard-key">Snapshot ID (Immutable):</span>
-                      <span class="pcard-val font-mono select-all">
-                        {{ profile.snapshot_id }}
-                      </span>
-                    </div>
+
                     <div class="pcard-row">
                       <span class="pcard-key">Execution Run ID:</span>
                       <span class="pcard-val font-mono select-all">
@@ -1821,6 +1801,28 @@ import {
 
       strong {
         color: var(--tl-text-primary);
+      }
+    }
+
+    /* MITRE — contextual neutral notice (non-verified / candidate / benign) */
+    .mitre-info-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(59, 130, 246, 0.07);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--tl-text-secondary);
+      line-height: 1.55;
+
+      .notice-icon {
+        font-size: 18px;
+        color: #60A5FA;
+        flex-shrink: 0;
+        margin-top: 1px;
       }
     }
 

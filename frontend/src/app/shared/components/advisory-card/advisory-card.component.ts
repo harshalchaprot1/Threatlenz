@@ -17,10 +17,7 @@ import { AdvisoryResponse } from '../../../core/models';
             <span class="action-chip">{{ advisory.action_type }}</span>
             <span class="rec-id">{{ advisory.recommendation_id }}</span>
           </div>
-          <div class="governance-indicator" title="ThreatLenz Governance Enforced">
-            <span class="material-symbols-outlined gov-icon">gavel</span>
-            <span class="gov-text">Analyst Sign-off Required</span>
-          </div>
+
         </div>
 
         <h3 class="advisory-summary">{{ advisory.summary }}</h3>
@@ -128,23 +125,6 @@ import { AdvisoryResponse } from '../../../core/models';
       font-size: 11px;
       color: var(--tl-text-muted);
       font-family: monospace;
-    }
-
-    .governance-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: #FBBF24;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(245, 158, 11, 0.1);
-      padding: 2px 8px;
-      border-radius: 4px;
-      border: 1px solid rgba(245, 158, 11, 0.25);
-
-      .gov-icon {
-        font-size: 14px;
-      }
     }
 
     .advisory-summary {
