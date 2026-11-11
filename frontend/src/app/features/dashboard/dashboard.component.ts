@@ -126,12 +126,12 @@ import {
           ></app-stat-card>
 
           <app-stat-card
-            title="Operational Risk Status"
-            [value]="operationalRiskStatus"
-            subtitle="Missing host target telemetry"
-            icon="policy"
-            badgeText="Evidence Policy"
-            badgeType="warning"
+            title="Random Forest Trees"
+            value="30"
+            subtitle="Trees trained in the selected Random Forest model."
+            icon="account_tree"
+            badgeText="Model Architecture"
+            badgeType="info"
           ></app-stat-card>
         </div>
 
