@@ -70,7 +70,7 @@ export class ReliabilityBadgeComponent {
 
   getDisplayLabel(): string {
     if (!this.reliability) {
-      return 'Baseline (N/A)';
+      return 'Not Evaluated';
     }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
@@ -84,6 +84,10 @@ export class ReliabilityBadgeComponent {
       case 'BASELINE_NOT_APPLICABLE':
       case 'BASELINE':
         return 'Baseline (N/A)';
+      case 'UNMATCHED':
+      case 'UNEVALUATED':
+      case 'NOT_EVALUATED':
+        return 'Not Evaluated';
       default:
         return String(this.reliability);
     }
@@ -91,7 +95,7 @@ export class ReliabilityBadgeComponent {
 
   getIcon(): string {
     if (!this.reliability) {
-      return 'verified_user';
+      return 'help_outline';
     }
     switch (this.reliability) {
       case 'HIGH_RELIABILITY':
@@ -102,6 +106,13 @@ export class ReliabilityBadgeComponent {
         return 'report_problem';
       case 'NON_EVALUABLE':
         return 'block';
+      case 'BASELINE_NOT_APPLICABLE':
+      case 'BASELINE':
+        return 'verified_user';
+      case 'UNMATCHED':
+      case 'UNEVALUATED':
+      case 'NOT_EVALUATED':
+        return 'help_outline';
       default:
         return 'verified_user';
     }
@@ -127,9 +138,12 @@ export class ReliabilityBadgeComponent {
 
   getTooltip(): string {
     if (!this.reliability) {
-      return 'Benign baseline traffic profile (Evaluated as negative class baseline; category reliability tiers apply to attack models)';
+      return 'Model reliability not evaluated for this traffic category.';
     }
     switch (this.reliability) {
+      case 'BASELINE_NOT_APPLICABLE':
+      case 'BASELINE':
+        return 'Benign baseline traffic profile (Evaluated as negative class baseline; category reliability tiers apply to attack models)';
       case 'HIGH_RELIABILITY':
         return 'Validation support >= 100 and min(Precision, Recall, F1) >= 0.75';
       case 'EVALUABLE':
@@ -138,6 +152,10 @@ export class ReliabilityBadgeComponent {
         return 'Validation support < 30 or min metric < 0.60. Model excluded from operational evidence.';
       case 'NON_EVALUABLE':
         return 'Zero validation support. Model cannot be evaluated on this category.';
+      case 'UNMATCHED':
+      case 'UNEVALUATED':
+      case 'NOT_EVALUATED':
+        return 'No evaluation benchmark record found for this class.';
       default:
         return 'Model reliability assessment.';
     }

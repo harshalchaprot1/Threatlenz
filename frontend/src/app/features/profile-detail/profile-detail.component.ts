@@ -15,6 +15,7 @@ import {
   RiskAssessmentResponse,
   ThreatProfileSummary,
 } from '../../core/models';
+import { resolveReliabilityTier } from '../../core/utils/reliability.util';
 import {
   AdvisoryCardComponent,
   EvidenceBannerComponent,
@@ -79,7 +80,7 @@ import {
             <div class="hero-category-row">
               <h1 class="hero-title">{{ profile.canonical_label }}</h1>
               <app-status-badge [status]="profile.attack_status"></app-status-badge>
-              <app-reliability-badge [reliability]="profile.model_reliability"></app-reliability-badge>
+              <app-reliability-badge [reliability]="resolvedReliabilityTier"></app-reliability-badge>
             </div>
             <div class="hero-meta-row">
               <span class="meta-item">
@@ -2259,7 +2260,7 @@ export class ProfileDetailComponent implements OnInit {
         this.risk = risk;
         this.mitre = mitre;
         this.advisories = advisories.items;
-        this.resolvedReliabilityTier = this.resolveReliabilityTier(profile, diagnostics);
+        this.resolvedReliabilityTier = resolveReliabilityTier(profile, diagnostics);
         this.loading = false;
       },
       error: (err) => {
@@ -2267,34 +2268,6 @@ export class ProfileDetailComponent implements OnInit {
         this.loading = false;
       },
     });
-  }
-
-  private resolveReliabilityTier(
-    profile: ThreatProfileSummary,
-    diagnostics: ModelDiagnosticsResponse | null
-  ): string {
-    // 1. Benign reference baseline or non-attack profile is strictly Negative Baseline
-    if (!profile.is_attack || profile.canonical_label === 'Benign') {
-      return 'BASELINE';
-    }
-
-    // 2. If diagnostics API call failed or timed out for an attack profile
-    if (!diagnostics) {
-      return 'UNAVAILABLE';
-    }
-
-    // 3. Exact-match canonical_label against authoritative category_evaluations class_name
-    if (diagnostics.category_evaluations && diagnostics.category_evaluations.length > 0) {
-      const match = diagnostics.category_evaluations.find(
-        (e) => e.class_name === profile.canonical_label
-      );
-      if (match?.official_reliability_tier) {
-        return match.official_reliability_tier;
-      }
-    }
-
-    // 4. Successful diagnostics response but no evaluation record exists for this attack category
-    return 'UNMATCHED';
   }
 
   formatBytes(bytes: number): string {

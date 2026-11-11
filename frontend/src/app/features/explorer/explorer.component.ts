@@ -10,8 +10,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ThreatLenzApiService } from '../../core/services/api.service';
-import { AttackStatus, ThreatProfileSummary } from '../../core/models';
+import { AttackStatus, ModelDiagnosticsResponse, ThreatProfileSummary } from '../../core/models';
+import { resolveReliabilityTier } from '../../core/utils/reliability.util';
 import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/components';
 
 @Component({
@@ -148,17 +151,9 @@ import { ReliabilityBadgeComponent, StatusBadgeComponent } from '../../shared/co
 
               <!-- Model Reliability Column -->
               <ng-container matColumnDef="model_reliability">
-                <th mat-header-cell *matHeaderCellDef>Model Reliability</th>
+                <th mat-header-cell *matHeaderCellDef>Model Reliability Tier</th>
                 <td mat-cell *matCellDef="let row">
-                  <app-reliability-badge [reliability]="row.model_reliability"></app-reliability-badge>
-                </td>
-              </ng-container>
-
-              <!-- Snapshot ID Column -->
-              <ng-container matColumnDef="snapshot_id">
-                <th mat-header-cell *matHeaderCellDef>Snapshot ID</th>
-                <td mat-cell *matCellDef="let row" class="font-mono text-muted">
-                  {{ row.snapshot_id }}
+                  <app-reliability-badge [reliability]="getReliabilityTier(row)"></app-reliability-badge>
                 </td>
               </ng-container>
 
@@ -383,12 +378,12 @@ export class ExplorerComponent implements OnInit {
     'total_packets',
     'recurrence',
     'model_reliability',
-    'snapshot_id',
     'actions',
   ];
 
   displayedProfiles: ThreatProfileSummary[] = [];
   rawProfiles: ThreatProfileSummary[] = [];
+  diagnostics: ModelDiagnosticsResponse | null = null;
 
   // Alias for backward-compatibility with tests & consumers
   get profiles(): ThreatProfileSummary[] {
@@ -418,10 +413,15 @@ export class ExplorerComponent implements OnInit {
     this.loading = true;
     this.errorMessage = null;
 
-    // Fetch full set of campaign profiles to support client-side filtering and pagination
-    this.apiService.listProfiles({ limit: 100, offset: 0 }).subscribe({
-      next: (response) => {
-        this.rawProfiles = response.items || [];
+    forkJoin({
+      profiles: this.apiService.listProfiles({ limit: 100, offset: 0 }),
+      diagnostics: this.apiService.getModelDiagnostics().pipe(
+        catchError(() => of(null as ModelDiagnosticsResponse | null))
+      ),
+    }).subscribe({
+      next: ({ profiles, diagnostics }) => {
+        this.rawProfiles = profiles.items || [];
+        this.diagnostics = diagnostics;
         this.applyFilterAndPagination();
         this.loading = false;
       },
@@ -430,6 +430,10 @@ export class ExplorerComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  getReliabilityTier(profile: ThreatProfileSummary): string {
+    return resolveReliabilityTier(profile, this.diagnostics);
   }
 
   applyFilterAndPagination(): void {
